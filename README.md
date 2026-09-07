@@ -2069,7 +2069,7 @@ task.spawn(function()
     volumePanel.Size = UDim2.new(0, 44, 0, 110)
     volumePanel.Position = UDim2.new(1, 8, 0, 0)
     volumePanel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    volumePanel.BackgroundTransparency = 0
+    volumePanel.BackgroundTransparency = 0.05
     volumePanel.BorderSizePixel = 0
     volumePanel.GroupTransparency = 1
     volumePanel.Visible = false
