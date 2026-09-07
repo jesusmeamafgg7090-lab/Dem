@@ -1811,6 +1811,13 @@ UIS.InputBegan:Connect(function(input, gpe)
     end
 end)
 
+
+ = false
+                if holdTimer then task.cancel(holdTimer); holdTimer = nil end
+            end
+        end)
+    end
+
 -- ==========================================================
 -- 🎵 NERO MUSIC PLAYER v7 – EXACT HTML/CSS REPLICA
 -- ==========================================================
@@ -2058,16 +2065,15 @@ task.spawn(function()
     -- ==========================================================
     -- PAINEL DE VOLUME FLUTUANTE (EXATO HTML)
     -- ==========================================================
-    local volCard = Instance.new("CanvasGroup")
-    volCard.Size = UDim2.new(0, 44, 0, 110)
-    volCard.Position = UDim2.new(1, 8, 0, 0)
-    volCard.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
-    volCard.BackgroundTransparency = 0 --Deixe em 0 para o fundo ficar 100% sólido (sem transparência)
-    volCard.BorderSizePixel = 0
-    volCard.GroupTransparency = 1      --Mantenha em 1! O script precisa disso para o efeito de fade funcionar
-    volCard.Visible = false
-    volCard.Parent = Player
-
+    local volumePanel = Instance.new("CanvasGroup")
+    volumePanel.Size = UDim2.new(0, 44, 0, 110)
+    volumePanel.Position = UDim2.new(1, 8, 0, 0)
+    volumePanel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    volumePanel.BackgroundTransparency = 0
+    volumePanel.BorderSizePixel = 0
+    volumePanel.GroupTransparency = 1
+    volumePanel.Visible = false
+    volumePanel.Parent = Player
 
     local volCorner = Instance.new("UICorner", volumePanel)
     volCorner.CornerRadius = UDim.new(0, 12)
@@ -2347,6 +2353,7 @@ task.spawn(function()
 
     print("🎵 [NERO] Music Player v7 sincronizado com o visual HTML/CSS com sucesso!")
 end)
+
 
 
     
