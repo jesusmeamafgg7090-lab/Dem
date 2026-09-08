@@ -2294,7 +2294,7 @@ task.spawn(function()
         NFBtn.InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                 isHeld = true
-                holdTimer = task.delay(3, function()
+                holdTimer = task.delay(1, function()
                     if isHeld and not MusicGui.Enabled then
                         OpenMusicPlayer()
                     end
