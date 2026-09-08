@@ -43,10 +43,10 @@ local C = {
     bg = Color3.fromRGB(0, 0, 0),         
     surface = Color3.fromRGB(15, 15, 15),    
     tabBg = Color3.fromRGB(10, 10, 10),      
-    primary = Color3.fromRGB(255, 100, 0),  
+    primary = Color3.fromRGB(255, 85, 0),  -- Laranja mais forte
     text = Color3.fromRGB(255, 255, 255),
     subtext = Color3.fromRGB(160, 160, 170),
-    premium = Color3.fromRGB(255, 185, 70), 
+    premium = Color3.fromRGB(255, 165, 50), -- Laranja premium mais forte
     premiumBg = Color3.fromRGB(20, 10, 0)
 }
 
@@ -181,7 +181,7 @@ Main.Position = UDim2.new(0.5, 0, 0.5, 0)
 Main.BackgroundColor3 = C.bg
 Main.BorderSizePixel = 0
 Main.Parent = Gui
-Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 35)
+Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 24)  -- Alterado para 24px
 
 local BorderGlow = Instance.new("UIStroke", Main)
 BorderGlow.Color = C.primary; BorderGlow.Thickness = 2
@@ -1350,8 +1350,9 @@ NFContainer.Parent = Gui
 Instance.new("UICorner", NFContainer).CornerRadius = UDim.new(0, 25)
 
 local NFStroke = Instance.new("UIStroke", NFContainer)
-NFStroke.Color = C.primary; NFStroke.Thickness = 2
-TS:Create(NFStroke, TweenInfoPulse, {Transparency = 0.8}):Play()
+NFStroke.Color = C.primary; NFStroke.Thickness = 1.2  -- Borda mais fina
+NFStroke.Transparency = 0  -- Sem transparência (cor mais forte)
+TS:Create(NFStroke, TweenInfoPulse, {Transparency = 0.3}):Play()
 
 local NFBtn = Instance.new("TextButton")
 NFBtn.Size = UDim2.new(1,0,1,0)
@@ -1410,15 +1411,16 @@ if ScreenGui then
     Instance.new("UICorner", EContainer).CornerRadius = UDim.new(0, 25)
 
     local EStroke = Instance.new("UIStroke", EContainer)
-    EStroke.Color = Color3.fromRGB(255, 126, 95)
-    EStroke.Thickness = 2
-    TS:Create(EStroke, TweenInfoPulse, {Transparency = 0.8}):Play()
+    EStroke.Color = Color3.fromRGB(255, 85, 0)  -- Laranja mais forte
+    EStroke.Thickness = 1.2  -- Borda mais fina
+    EStroke.Transparency = 0  -- Sem transparência (cor mais forte)
+    TS:Create(EStroke, TweenInfoPulse, {Transparency = 0.3}):Play()
 
     local EBtn = Instance.new("TextButton")
     EBtn.Size = UDim2.new(1, 0, 1, 0)
     EBtn.BackgroundTransparency = 1
     EBtn.Text = "E"
-    EBtn.TextColor3 = Color3.fromRGB(255, 126, 95)
+    EBtn.TextColor3 = Color3.fromRGB(255, 85, 0)  -- Laranja mais forte
     EBtn.TextSize = 20
     EBtn.Font = Enum.Font.GothamBold
     EBtn.Parent = EContainer
@@ -1484,7 +1486,7 @@ end)
 -- ============================================================
 
 task.spawn(function()
-    task.wait(2)
+    task.wait(0.1)
     
     -- ===== VARIAVEIS =====
     local lightEnabled = false
