@@ -3562,6 +3562,8 @@ task.spawn(function()
         end
     end)
 end)
+        
+        
 -- ==========================================================
 -- TOGGLE: CORPO ANIMATIONS (NERO) - COMPLETO (NEW UI) - FIX SEM TRAVAR
 -- ==========================================================
@@ -3569,7 +3571,7 @@ task.spawn(function()
     task.wait(0.1)
 
     -- ===== CRIA TOGGLE NA ABA VISUAIS =====
-    local AnimTog, AnimKnob, AnimBtn = createToggle("🎭 Corpo Animations", tabContainers[4], 96)
+    local AnimTog, AnimKnob, AnimBtn = createToggle("Animaçoes .v20", tabContainers[4], 96)
 
     local janelaAberta = false
     local guiJanela = nil
@@ -3584,22 +3586,22 @@ task.spawn(function()
     local configSpeed = 1.0
     local manterAnimacoes = false  -- NOVA VARIÁVEL
 
-    -- Cores baseadas na nova paleta fornecida (Nero)
+    -- Cores baseadas na nova paleta fornecida (Nero) - AJUSTADAS CONFORME SOLICITADO
     local Cores = {
-        BgPrincipal = Color3.fromRGB(0, 0, 0),
-        BgSecundario = Color3.fromRGB(15, 15, 15),
-        BgCartao = Color3.fromRGB(15, 15, 15),
-        BgCartaoHover = Color3.fromRGB(20, 10, 0),
-        BgTop = Color3.fromRGB(10, 10, 10),
-        Laranja = Color3.fromRGB(255, 100, 0),
-        LaranjaVib = Color3.fromRGB(255, 185, 70),
-        LaranjaEscuro = Color3.fromRGB(255, 100, 0),
+        BgPrincipal = Color3.fromRGB(0, 0, 0),        -- 100% Preto
+        BgSecundario = Color3.fromRGB(10, 10, 10),
+        BgCartao = Color3.fromRGB(12, 12, 12),
+        BgCartaoHover = Color3.fromRGB(20, 8, 0),
+        BgTop = Color3.fromRGB(0, 0, 0),               -- 100% Preto
+        Laranja = Color3.fromRGB(255, 68, 0),          -- Laranja mais forte/vivo
+        LaranjaVib = Color3.fromRGB(255, 120, 0),       -- Laranja vibrante
+        LaranjaEscuro = Color3.fromRGB(200, 45, 0),
         Texto = Color3.fromRGB(255, 255, 255),
         TextoMuted = Color3.fromRGB(160, 160, 170),
-        BorderGlow = Color3.fromRGB(255, 100, 0)
+        BorderGlow = Color3.fromRGB(255, 68, 0)
     }
 
-    -- ============================================================
+-- ============================================================
     -- ===== TODOS OS 262 EMOTES =====
     -- ============================================================
     local Emotes = {
@@ -3781,7 +3783,6 @@ task.spawn(function()
         ["Gentleman"] = {Idle = 3334424322, Idle2 = 3334424323, Idle3 = 3334424324, Walk = 3334424325, Run = 3334424326, Jump = 3334424327, Climb = 3334424328, Fall = 3334424329, Swim = 3334424330, SwimIdle = 3334424331},
         ["Cyborg"] = {Idle = 616111295, Idle2 = 616113536, Idle3 = 616115533, Walk = 616122287, Run = 616117076, Jump = 616115533, Climb = 616104706, Fall = 616108001, Swim = 616119360, SwimIdle = 616120861}
     }
-
     -- ===== FUNÇÕES DE ANIMAÇÃO =====
     local function aplicarAtributosTrilhas()
         local char = game.Players.LocalPlayer.Character
@@ -3981,30 +3982,30 @@ task.spawn(function()
             end
         end
         
-            -- Aplica SWIM e SWIMIDLE
-    if anim:FindFirstChild("swim") then
-        local swim = anim.swim:FindFirstChildOfClass("Animation")
-        local swimIdle = anim.swimidle:FindFirstChildOfClass("Animation")
-        if swim then
-            swim.AnimationId = URL .. tostring(data.Swim)
+        -- Aplica SWIM e SWIMIDLE
+        if anim:FindFirstChild("swim") then
+            local swim = anim.swim:FindFirstChildOfClass("Animation")
+            local swimIdle = anim.swimidle:FindFirstChildOfClass("Animation")
+            if swim then
+                swim.AnimationId = URL .. tostring(data.Swim)
+            end
+            if swimIdle then
+                swimIdle.AnimationId = URL .. tostring(data.SwimIdle)
+            end
         end
-        if swimIdle then
-            swimIdle.AnimationId = URL .. tostring(data.SwimIdle)
+        
+        -- Força o Humanoid a reavaliar o estado atual (sem desligar o Animate)
+        local hum = char:FindFirstChildOfClass("Humanoid")
+        if hum then
+            local estadoAtual = hum:GetState()
+            hum:ChangeState(Enum.HumanoidStateType.RunningNoPhysics)
+            task.wait(0.02)
+            hum:ChangeState(estadoAtual)
         end
+        
+        animAtual = nome
+        task.delay(0.2, aplicarAtributosTrilhas)
     end
-    
-    -- Força o Humanoid a reavaliar o estado atual (sem desligar o Animate)
-    local hum = char:FindFirstChildOfClass("Humanoid")
-    if hum then
-        local estadoAtual = hum:GetState()
-        hum:ChangeState(Enum.HumanoidStateType.RunningNoPhysics)
-        task.wait(0.02)
-        hum:ChangeState(estadoAtual)
-    end
-    
-    animAtual = nome
-    task.delay(0.2, aplicarAtributosTrilhas)
-end
 
     -- ============================================================
     -- ===== CRIAÇÃO DA JANELA PRINCIPAL (Nero Style) =====
@@ -4019,8 +4020,9 @@ end
         guiJanela = Instance.new("ScreenGui")
         guiJanela.Name = "NeroCorpoAnimationsUI"
         guiJanela.ResetOnSpawn = false
-        guiJanela.Parent = game:GetService("CoreGui")
+        guiJanela.DisplayOrder = 10 -- Define prioridade de exibição ajustada para não sobrepor a UI mãe
         guiJanela.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+        guiJanela.Parent = game:GetService("CoreGui")
 
         framePrincipal = Instance.new("CanvasGroup")
         framePrincipal.Size = UDim2.new(0, 420, 0, 310)
@@ -4030,13 +4032,14 @@ end
         framePrincipal.ClipsDescendants = true
         framePrincipal.Parent = guiJanela
 
+        -- Borda mais fina (Thickness = 1)
         local strokePrincipal = Instance.new("UIStroke")
         strokePrincipal.Color = Cores.BorderGlow
-        strokePrincipal.Thickness = 2
+        strokePrincipal.Thickness = 1
         strokePrincipal.Parent = framePrincipal
 
         local cornerPrincipal = Instance.new("UICorner")
-        cornerPrincipal.CornerRadius = UDim.new(0, 20)
+        cornerPrincipal.CornerRadius = UDim.new(0, 16)
         cornerPrincipal.Parent = framePrincipal
 
         -- .topbar
@@ -4058,33 +4061,62 @@ end
         titulo.Size = UDim2.new(1, -60, 1, 0)
         titulo.Position = UDim2.new(0, 24, 0, 0)
         titulo.BackgroundTransparency = 1
-        titulo.Text = "🎭 Corpo Animations"
+        titulo.Text = "Animaçoes .v20"
         titulo.TextColor3 = Cores.LaranjaVib
         titulo.TextSize = 13
         titulo.Font = Enum.Font.GothamBold
         titulo.TextXAlignment = Enum.TextXAlignment.Left
         titulo.Parent = topbar
 
+        -- ===== BOTÃO MINIMIZAR ESTILIZADO COM O DISCO/ANEL GIRATÓRIO CSS =====
         local btnMinimizar = Instance.new("TextButton")
-        btnMinimizar.Size = UDim2.new(0, 26, 0, 26)
-        btnMinimizar.Position = UDim2.new(1, -34, 0, 6)
-        btnMinimizar.BackgroundColor3 = Cores.Laranja
-        btnMinimizar.BackgroundTransparency = 0.88
-        btnMinimizar.Text = "_"
-        btnMinimizar.TextColor3 = Cores.LaranjaVib
-        btnMinimizar.TextSize = 15
-        btnMinimizar.Font = Enum.Font.GothamBold
+        btnMinimizar.Size = UDim2.new(0, 22, 0, 22)
+        btnMinimizar.Position = UDim2.new(1, -30, 0, 8)
+        btnMinimizar.BackgroundTransparency = 1
+        btnMinimizar.Text = ""
         btnMinimizar.Parent = topbar
-        
-        local cornerBtnMin = Instance.new("UICorner")
-        cornerBtnMin.CornerRadius = UDim.new(0, 6)
-        cornerBtnMin.Parent = btnMinimizar
-        
-        local strokeBtnMin = Instance.new("UIStroke")
-        strokeBtnMin.Color = Cores.Laranja
-        strokeBtnMin.Transparency = 0.6
-        strokeBtnMin.Thickness = 1
-        strokeBtnMin.Parent = btnMinimizar
+
+        local anelOuter = Instance.new("Frame")
+        anelOuter.Size = UDim2.new(1, 0, 1, 0)
+        anelOuter.BackgroundTransparency = 0
+        anelOuter.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        anelOuter.BorderSizePixel = 0
+        anelOuter.Parent = btnMinimizar
+
+        local cornerOuter = Instance.new("UICorner")
+        cornerOuter.CornerRadius = UDim.new(1, 0)
+        cornerOuter.Parent = anelOuter
+
+        local gradAnel = Instance.new("UIGradient")
+        gradAnel.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0.00, Color3.fromRGB(179, 18, 0)),   -- #B31200 (0deg)
+            ColorSequenceKeypoint.new(0.25, Color3.fromRGB(255, 51, 0)),   -- #FF3300 (90deg)
+            ColorSequenceKeypoint.new(0.50, Color3.fromRGB(255, 153, 0)),  -- #FF9900 (180deg)
+            ColorSequenceKeypoint.new(0.61, Color3.fromRGB(255, 199, 102)),-- #FFC766 (220deg)
+            ColorSequenceKeypoint.new(0.80, Color3.fromRGB(255, 51, 0)),   -- #FF3300 (290deg)
+            ColorSequenceKeypoint.new(1.00, Color3.fromRGB(179, 18, 0))    -- #B31200 (360deg)
+        })
+        gradAnel.Rotation = 0
+        gradAnel.Parent = anelOuter
+
+
+        local mioloVazado = Instance.new("Frame")
+        mioloVazado.Size = UDim2.new(1, -6, 1, -6)
+        mioloVazado.Position = UDim2.new(0, 3, 0, 3)
+        mioloVazado.BackgroundColor3 = Cores.BgTop
+        mioloVazado.BorderSizePixel = 0
+        mioloVazado.Parent = anelOuter
+
+        local cornerMiolo = Instance.new("UICorner")
+        cornerMiolo.CornerRadius = UDim.new(1, 0)
+        cornerMiolo.Parent = mioloVazado
+
+        -- Animação de Giro do Anel (CSS @keyframes girar)
+        local rotConn = game:GetService("RunService").RenderStepped:Connect(function(dt)
+            if gradAnel and gradAnel.Parent then
+                gradAnel.Rotation = (gradAnel.Rotation + (dt * (360 / 1.4))) % 360
+            end
+        end)
 
         -- .content
         local content = Instance.new("Frame")
@@ -4334,7 +4366,7 @@ end
 
             local stroke = Instance.new("UIStroke")
             stroke.Color = Cores.Laranja
-            stroke.Transparency = 0.8
+            stroke.Transparency = 0.85
             stroke.Thickness = 1
             stroke.Parent = row
 
@@ -4507,20 +4539,18 @@ end
         btnAbas[1]:FindFirstChildOfClass("UIGradient").Enabled = true
         framesPaginas[1].Visible = true
 
-        -- ===== LÓGICA DE MINIMIZAR =====
+        -- ===== LÓGICA DE MINIMIZAR (LARGURA REDUZIDA PELA METADE: 210px) =====
         btnMinimizar.MouseButton1Click:Connect(function()
             minimizado = not minimizado
             if minimizado then
                 content.Visible = false
                 statusbar.Visible = false
                 topbarBottomBorder.Visible = false
-                framePrincipal:TweenSize(UDim2.new(0, 420, 0, 38), "Out", "Quad", 0.28, true)
-                cornerPrincipal.CornerRadius = UDim.new(0, 20)
-                btnMinimizar.Text = "□"
+                framePrincipal:TweenSize(UDim2.new(0, 210, 0, 38), "Out", "Quad", 0.28, true)
+                cornerPrincipal.CornerRadius = UDim.new(0, 16)
             else
                 framePrincipal:TweenSize(UDim2.new(0, 420, 0, 310), "Out", "Quad", 0.28, true)
-                cornerPrincipal.CornerRadius = UDim.new(0, 20)
-                btnMinimizar.Text = "_"
+                cornerPrincipal.CornerRadius = UDim.new(0, 16)
                 topbarBottomBorder.Visible = true
                 task.delay(0.2, function()
                     if not minimizado and guiJanela then
@@ -4568,35 +4598,35 @@ end
         if janelaAberta then
             minimizado = false
             criarJanela()
-            if Notify then Notify("🎭 Corpo Animations ativado!") end
+            if Notify then Notify("Animaçoes .v20 ativado!") end
         else
             if guiJanela then
                 guiJanela:Destroy()
                 guiJanela = nil
                 framePrincipal = nil
             end
-            if Notify then Notify("❌ Corpo Animations desativado!") end
+            if Notify then Notify("❌ Animaçoes .v20 desativado!") end
         end
     end)
 
     -- ===== CONEXÃO PARA REAPLICAR ANIMAÇÃO APÓS RENASCER (SIMPLES E DIRETO) =====
-local charAddedConn
-charAddedConn = game.Players.LocalPlayer.CharacterAdded:Connect(function(char)
-    if manterAnimacoes and animAtual then
-        task.spawn(function()
-            -- Aguarda um pouco para o Roblox carregar tudo
-            char:WaitForChild("Humanoid")
-            char:WaitForChild("Animate")
-            task.wait(0.3)
+    local charAddedConn
+    charAddedConn = game.Players.LocalPlayer.CharacterAdded:Connect(function(char)
+        if manterAnimacoes and animAtual then
+            task.spawn(function()
+                -- Aguarda um pouco para o Roblox carregar tudo
+                char:WaitForChild("Humanoid")
+                char:WaitForChild("Animate")
+                task.wait(0.3)
 
-            -- Chama a mesma função que o clique do botão usa, 3 vezes para garantir
-            for i = 1, 3 do
-                tocarAnimacao(animAtual, true)
-                task.wait(0.1)
-            end
-        end)
-    end
-end)
+                -- Chama a mesma função que o clique do botão usa, 3 vezes para garantir
+                for i = 1, 3 do
+                    tocarAnimacao(animAtual, true)
+                    task.wait(0.1)
+                end
+            end)
+        end
+    end)
 
     -- ===== LIMPEZA PARA QUANDO FECHAR O SCRIPT =====
     local function cleanup()
@@ -4613,6 +4643,10 @@ end)
 
     table.insert(NERO.Connections, {Disconnect = cleanup})
 end)
+
+ 
+
+
 -- ==========================================================
 -- TOGGLE: SUPER RING PARTS (ABA 2 - TROLLING)
 -- ==========================================================
