@@ -1,6 +1,6 @@
 -- ==========================================================
 -- NERO FE v20.0 [PREMIUM OMNI EDITION]
--- Lógica Avançada, Adaptador de Jogos Dinâmico e Interface Premium
+-- Logica Avançada, Adaptador de Jogos Dinâmico e Interface Premium
 -- Criadores: Dark & DemonFrota
 -- ==========================================================
 getgenv().NERO_FE_LOADED = nil 
