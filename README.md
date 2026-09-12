@@ -1813,8 +1813,8 @@ UIS.InputBegan:Connect(function(input, gpe)
     end
 end)
 
--- ==========================================================
--- 🎵 NERO MUSIC PLAYER v7 – EXACT HTML/CSS REPLICA
+            -- ==========================================================
+-- 🎵 NERO MUSIC PLAYER v7 – BEAT SYNC EDITION (AJUSTADO)
 -- ==========================================================
 task.spawn(function()
     local musicList = {
@@ -1841,12 +1841,20 @@ task.spawn(function()
         "9046863235",
         "9046864509",
         "14145626111",
-        "7148815128"    
+        "7148815128",
+        "120785124326826",
+        "102688248318930",
+        "90089940136467",
+        "16190782181",
+        "120912468681132",
+        "126576350082922",
+        "92634372837784"
     }
 
     local TweenService = game:GetService("TweenService")
     local RunService = game:GetService("RunService")
     local UserInputService = game:GetService("UserInputService")
+    local MarketplaceService = game:GetService("MarketplaceService")
 
     local MusicGui = Instance.new("ScreenGui")
     MusicGui.Name = "NERO_MusicPlayer"
@@ -1904,18 +1912,24 @@ task.spawn(function()
     coverStroke.Color = Color3.fromRGB(255, 100, 0)
     coverStroke.Thickness = 1
 
-    -- Anel Giratório em CSS
+    -- Anel Giratório em CSS (Com AnchorPoint centralizado)
     local anelGiratorio = Instance.new("Frame")
+    anelGiratorio.AnchorPoint = Vector2.new(0.5, 0.5)
     anelGiratorio.Size = UDim2.new(0, 24, 0, 24)
-    anelGiratorio.Position = UDim2.new(0.5, -12, 0.5, -12)
+    anelGiratorio.Position = UDim2.new(0.5, 0, 0.5, 0)
     anelGiratorio.BackgroundTransparency = 1
     anelGiratorio.Parent = coverBox
+
+    -- UIScale para transição fluida em sub-pixel
+    local diskScale = Instance.new("UIScale")
+    diskScale.Scale = 1
+    diskScale.Parent = anelGiratorio
 
     local anelCorner = Instance.new("UICorner", anelGiratorio)
     anelCorner.CornerRadius = UDim.new(1, 0)
 
     local anelStroke = Instance.new("UIStroke", anelGiratorio)
-    anelStroke.Thickness = 3
+    anelStroke.Thickness = 2.5
     anelStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     anelStroke.Color = Color3.fromRGB(255, 255, 255)
 
@@ -1929,11 +1943,6 @@ task.spawn(function()
         ColorSequenceKeypoint.new(1.00, Color3.fromRGB(179, 18, 0))
     })
 
-    -- Animação de Giro do Anel (1.4s)
-    local spinInfo = TweenInfo.new(1.4, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1)
-    local spinTween = TweenService:Create(ringGradient, spinInfo, {Rotation = 360})
-    spinTween:Play()
-
     -- Detalhes da Faixa
     local trackDetails = Instance.new("Frame")
     trackDetails.Size = UDim2.new(1, -54, 1, 0)
@@ -1945,7 +1954,7 @@ task.spawn(function()
     trackTitle.Size = UDim2.new(1, 0, 0, 14)
     trackTitle.Position = UDim2.new(0, 0, 0, 8)
     trackTitle.BackgroundTransparency = 1
-    trackTitle.Text = "♧NERO MUSIC♡"
+    trackTitle.Text = "Carregando..."
     trackTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
     trackTitle.Font = Enum.Font.GothamBold
     trackTitle.TextSize = 11
@@ -1991,7 +2000,7 @@ task.spawn(function()
     local barCorner = Instance.new("UICorner", progressBar)
     barCorner.CornerRadius = UDim.new(0, 12)
 
-    -- Display de Tempo (1:15 / 2:45)
+    -- Display de Tempo
     local timeDisplay = Instance.new("Frame")
     timeDisplay.Size = UDim2.new(1, 0, 0, 10)
     timeDisplay.Position = UDim2.new(0, 0, 0, 5)
@@ -2058,7 +2067,7 @@ task.spawn(function()
     nextBtn.Parent = controlsRow
 
     -- ==========================================================
-    -- PAINEL DE VOLUME FLUTUANTE (EXATO HTML)
+    -- PAINEL DE VOLUME FLUTUANTE
     -- ==========================================================
     local volumePanel = Instance.new("CanvasGroup")
     volumePanel.Size = UDim2.new(0, 44, 0, 110)
@@ -2166,12 +2175,44 @@ task.spawn(function()
     Player.MouseMoved:Connect(showVolume)
 
     -- ==========================================================
-    -- LÓGICA DO PLAYER & CONTROLE DE TEMPO
+    -- LÓGICA DO PLAYER & REAÇÃO À BATIDA (BEAT-SYNC AJUSTADO)
     -- ==========================================================
     local currentSound = nil
     local currentIndex = 1
     local isPlaying = false
     local progressConnection = nil
+    local currentRotation = 0
+    local smoothedBeat = 0
+
+    -- Loop de RenderStepped suavizado
+    RunService.RenderStepped:Connect(function(dt)
+        local rawLoudness = 0
+        if isPlaying and currentSound and currentSound.IsPlaying then
+            rawLoudness = currentSound.PlaybackLoudness
+        end
+
+        -- Filtro de sensibilidade: Ignora ruídos baixos (abaixo de 120) para focar apenas nas batidas/graves
+        local targetAlpha = 0
+        if rawLoudness > 120 then
+            targetAlpha = math.clamp((rawLoudness - 120) / 400, 0, 1)
+        end
+
+        -- Suavização gradual (Lerp) para evitar sobressaltos e solavancos
+        smoothedBeat = smoothedBeat + (targetAlpha - smoothedBeat) * math.clamp(dt * 12, 0, 1)
+
+        -- 1. Velocidade de Giro controlada
+        local baseSpeed = 80
+        local maxSpeedBoost = 200
+        local speed = baseSpeed + (smoothedBeat * maxSpeedBoost)
+        currentRotation = (currentRotation + speed * dt) % 360
+        ringGradient.Rotation = currentRotation
+
+        -- 2. Espessura suave apenas no anel giratório
+        anelStroke.Thickness = 2.5 + (smoothedBeat * 2)
+
+        -- 3. Escala sub-pixel ultra-fluida do disco via UIScale (0.25 = até +25% de expansão)
+        diskScale.Scale = 1 + (smoothedBeat * 0.25)
+    end)
 
     local function formatTime(seconds)
         if not seconds or seconds ~= seconds or seconds <= 0 then return "0:00" end
@@ -2214,29 +2255,72 @@ task.spawn(function()
         if currentSound then 
             currentSound:Stop() 
             currentSound:Destroy() 
+            currentSound = nil
         end
         if #musicList == 0 then return end
         if index < 1 then index = #musicList end
         if index > #musicList then index = 1 end
         currentIndex = index
 
+        local songId = musicList[currentIndex]
+
+        -- Busca o nome real do áudio pelo ID no Roblox
+        trackTitle.Text = "Buscando nome..."
+        task.spawn(function()
+            local success, info = pcall(function()
+                return MarketplaceService:GetProductInfo(tonumber(songId), Enum.InfoType.Asset)
+            end)
+            if success and info and info.Name and info.Name ~= "" then
+                trackTitle.Text = info.Name
+            else
+                trackTitle.Text = "Música #" .. songId
+            end
+        end)
+
         currentSound = Instance.new("Sound")
-        currentSound.SoundId = "rbxassetid://" .. musicList[currentIndex]
+        currentSound.SoundId = "rbxassetid://" .. songId
         currentSound.Volume = globalVolume
         currentSound.Looped = false
         currentSound.Parent = game:GetService("SoundService")
-        currentSound:Play()
-        isPlaying = true
+
+        local hasSkipped = false
+        local function autoSkip(reason)
+            if hasSkipped then return end
+            hasSkipped = true
+            warn("⚠️ [NERO PLAYER] Áudio " .. tostring(songId) .. " indisponível (" .. tostring(reason) .. "). Pulando faixa...")
+            if currentSound then
+                currentSound:Stop()
+                currentSound:Destroy()
+                currentSound = nil
+            end
+            task.wait(0.3)
+            PlaySong(currentIndex + 1)
+        end
+
+        -- Auto-skip se o áudio não carregar (bloqueado pelo Roblox)
+        local loadTimeout = task.delay(3.5, function()
+            if currentSound and not currentSound.IsLoaded then
+                autoSkip("Bloqueado ou Timeout de Carregamento")
+            end
+        end)
 
         currentSound.Loaded:Connect(function()
+            if loadTimeout then task.cancel(loadTimeout) end
+            if currentSound and currentSound.TimeLength <= 0 then
+                autoSkip("Duração nula / Áudio Bloqueado")
+                return
+            end
             UpdateProgress()
         end)
 
         currentSound.Ended:Connect(function()
+            if loadTimeout then task.cancel(loadTimeout) end
             progressBar.Size = UDim2.new(0, 0, 1, 0)
             PlaySong(currentIndex + 1)
         end)
 
+        currentSound:Play()
+        isPlaying = true
         StartProgressUpdate()
     end
 
@@ -2346,7 +2430,7 @@ task.spawn(function()
         end
     end)
 
-    print("🎵 [NERO] Music Player v7 sincronizado com o visual HTML/CSS com sucesso!")
+    print("🎵 [NERO] Music Player v7 com sincronização ajustada e suave!")
 end)
 
 
