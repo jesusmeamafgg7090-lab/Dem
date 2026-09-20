@@ -1105,6 +1105,39 @@ WcBtn.MouseButton1Click:Connect(function()
         Notify("Escalar Paredes Desativado!") 
     end
 end)
+-- Anti-Teleporte (Posição Y: 240 = 2x o espaçamento padrão de 48px a partir do último toggle)
+-- *Nota: Se preferir na posição imediatamente abaixo, troque 240 por 192.
+local TpTog, TpKnob, TpBtn = createToggle("Anti-Teleporte", tabContainers[10], 240)
+
+local lastPos
+table.insert(NERO.Connections, RS.Heartbeat:Connect(function()
+    if NERO.AntiTP and LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then
+        local root = LP.Character.HumanoidRootPart
+        if lastPos and (root.Position - lastPos).Magnitude > 50 then
+            root.CFrame = CFrame.new(lastPos)
+        else
+            lastPos = root.Position
+        end
+    else
+        lastPos = nil
+    end
+end))
+
+if hookmetamethod then
+    local old
+    old = hookmetamethod(game, "__namecall", function(self, ...)
+        local method = getnamecallmethod()
+        if NERO.AntiTP and self == game:GetService("TeleportService") and (method == "Teleport" or method == "TeleportToPlaceInstance" or method == "TeleportAsync") then
+            return
+        end
+        return old(self, ...)
+    end)
+end
+
+TpBtn.MouseButton1Click:Connect(function() 
+    NERO.AntiTP = not NERO.AntiTP 
+    updateToggle(TpTog, TpKnob, NERO.AntiTP) 
+end)
 
 -- ==================== ABA 11: 💣 EXTREMO (VISÍVEL PARA TODOS) ====================
 local FAllTog, FAllKnob, FAllBtn = createToggle("Fling All (Física Replicada)", tabContainers[11], 0)
