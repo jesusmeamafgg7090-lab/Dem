@@ -5767,55 +5767,50 @@ task.spawn(function()
         end
     end)
 end)
--- ==================== MÓDULO ANTI-TELEPORTE ====================
+-- ==================== MÓDULO ANTI-TELEPORTE (VERSÃO SEGURA) ====================
 task.spawn(function()
     task.wait(3)
 
-    local Players = game:GetService("Players")
+    -- Validação para garantir que a UI e tabelas existem sem quebrar o script mãe
+    if typeof(tabContainers) ~= "table" or not tabContainers[10] or typeof(NERO) ~= "table" then 
+        return 
+    end
+
+    local LP = game:GetService("Players").LocalPlayer
     local RS = game:GetService("RunService")
-    local TeleportService = game:GetService("TeleportService")
-    local LP = Players.LocalPlayer
 
-    -- Valida se a interface e a tabela principal já existem
-    if not tabContainers or not tabContainers[10] or not NERO then return end
-
-    -- Cria o toggle na Aba 10 (Posição Y: 240)
-    local TpTog, TpKnob, TpBtn = createToggle("Anti-Teleporte", tabContainers[10], 240)
-    NERO.AntiTP = false
-
-    local lastPos = nil
-
-    -- Bloqueio de teleportes internos (mudanças bruscas de posição no mapa)
-    table.insert(NERO.Connections, RS.Heartbeat:Connect(function()
-        if NERO.AntiTP and LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then
-            local root = LP.Character.HumanoidRootPart
-            if lastPos and (root.Position - lastPos).Magnitude > 50 then
-                root.CFrame = CFrame.new(lastPos)
-            else
-                lastPos = root.Position
-            end
-        else
-            lastPos = nil
-        end
-    end))
-
-    -- Bloqueio de teleportes do servidor (troca de lugar/servidor)
+    -- Cria o toggle com proteção contra erros
+    local TpTog, TpKnob, TpBtn
     pcall(function()
-        if hookmetamethod then
-            local old
-            old = hookmetamethod(game, "__namecall", function(self, ...)
-                local method = getnamecallmethod()
-                if NERO.AntiTP and self == TeleportService and (method == "Teleport" or method == "TeleportToPlaceInstance" or method == "TeleportAsync") then
-                    return
-                end
-                return old(self, ...)
-            end)
-        end
+        TpTog, TpKnob, TpBtn = createToggle("Anti-Teleporte", tabContainers[10], 240)
     end)
 
-    -- Ativar / Desativar (sem notificação)
+    if not TpBtn then return end
+
+    NERO.AntiTP = false
+    local lastPos = nil
+
+    -- Mantém o jogador na posição caso o jogo tente teleportá-lo no mapa
+    if NERO.Connections then
+        table.insert(NERO.Connections, RS.Heartbeat:Connect(function()
+            if NERO.AntiTP and LP and LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then
+                local root = LP.Character.HumanoidRootPart
+                if lastPos and (root.Position - lastPos).Magnitude > 50 then
+                    root.CFrame = CFrame.new(lastPos)
+                else
+                    lastPos = root.Position
+                end
+            else
+                lastPos = nil
+            end
+        end))
+    end
+
+    -- Evento de clique (liga/desliga sem notificações)
     TpBtn.MouseButton1Click:Connect(function()
         NERO.AntiTP = not NERO.AntiTP
-        updateToggle(TpTog, TpKnob, NERO.AntiTP)
+        if typeof(updateToggle) == "function" then
+            updateToggle(TpTog, TpKnob, NERO.AntiTP)
+        end
     end)
 end)
