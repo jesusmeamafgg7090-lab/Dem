@@ -5821,3 +5821,40 @@ task.spawn(function()
         end
     end)
 end)
+-- [[ NERO HUB: Módulo Anti-Deslizamento (Braking System) ]] --
+task.spawn(function()
+    if not game:IsLoaded() then game.Loaded:Wait() end
+
+    local Players = game:GetService("Players")
+    local RunService = game:GetService("RunService")
+    local player = Players.LocalPlayer
+
+    local brakingActive = false
+
+    RunService.Heartbeat:Connect(function()
+        -- Verificação segura de personagem para evitar erros no console
+        local char = player.Character
+        if not char then return end
+
+        local hrp = char:FindFirstChild("HumanoidRootPart")
+        local humanoid = char:FindFirstChildOfClass("Humanoid")
+        if not hrp or not humanoid then return end
+
+        -- Calcula a velocidade apenas no plano horizontal (ignorando subida/queda no eixo Y)
+        local horizontalVelocity = Vector3.new(hrp.AssemblyLinearVelocity.X, 0, hrp.AssemblyLinearVelocity.Z)
+        local currentSpeed = horizontalVelocity.Magnitude
+
+        -- Lógica de ativação (LIGA em 30+ / DESLIGA em 20 ou menos)
+        if not brakingActive and currentSpeed >= 30 then
+            brakingActive = true
+        elseif brakingActive and currentSpeed <= 20 then
+            brakingActive = false
+        end
+
+        -- Aplica a frenagem instantânea se o módulo estiver ativo e você soltar o direcional
+        if brakingActive and humanoid.MoveDirection.Magnitude == 0 then
+            hrp.AssemblyLinearVelocity = Vector3.new(0, hrp.AssemblyLinearVelocity.Y, 0)
+        end
+    end)
+end)
+
