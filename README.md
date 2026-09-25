@@ -5821,7 +5821,7 @@ task.spawn(function()
         end
     end)
 end)
--- [[ NERO HUB: Módulo Anti-Deslizamento (Braking System) ]] --
+-- [[ NERO HUB: Módulo Anti-Deslizamento (Braking System Safe) ]] --
 task.spawn(function()
     if not game:IsLoaded() then game.Loaded:Wait() end
 
@@ -5831,8 +5831,8 @@ task.spawn(function()
 
     local brakingActive = false
 
-    RunService.Heartbeat:Connect(function()
-        -- Verificação segura de personagem para evitar erros no console
+    RunService.Heartbeat:Connect(function(dt)
+        -- Verificação de segurança
         local char = player.Character
         if not char then return end
 
@@ -5840,21 +5840,25 @@ task.spawn(function()
         local humanoid = char:FindFirstChildOfClass("Humanoid")
         if not hrp or not humanoid then return end
 
-        -- Calcula a velocidade apenas no plano horizontal (ignorando subida/queda no eixo Y)
-        local horizontalVelocity = Vector3.new(hrp.AssemblyLinearVelocity.X, 0, hrp.AssemblyLinearVelocity.Z)
+        -- Velocidade apenas no plano horizontal
+        local currentVel = hrp.AssemblyLinearVelocity
+        local horizontalVelocity = Vector3.new(currentVel.X, 0, currentVel.Z)
         local currentSpeed = horizontalVelocity.Magnitude
 
-        -- Lógica de ativação (LIGA em 30+ / DESLIGA em 20 ou menos)
+        -- Ativa em 30+ de velocidade e desativa em 20 ou menos
         if not brakingActive and currentSpeed >= 30 then
             brakingActive = true
         elseif brakingActive and currentSpeed <= 20 then
             brakingActive = false
         end
 
-        -- Aplica a frenagem instantânea se o módulo estiver ativo e você soltar o direcional
+        -- Se estiver ativo e soltar o direcional: freia suavemente mas muito rápido
         if brakingActive and humanoid.MoveDirection.Magnitude == 0 then
-            hrp.AssemblyLinearVelocity = Vector3.new(0, hrp.AssemblyLinearVelocity.Y, 0)
+            -- Suaviza a queda de velocidade usando Lerp com o tempo do frame (dt)
+            local brakedVelocity = horizontalVelocity:Lerp(Vector3.zero, math.min(dt * 25, 1))
+            hrp.AssemblyLinearVelocity = Vector3.new(brakedVelocity.X, currentVel.Y, brakedVelocity.Z)
         end
     end)
 end)
+
 
