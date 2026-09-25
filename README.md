@@ -2441,8 +2441,6 @@ task.spawn(function()
 end)
 
 
-
-    
 -- [[ NERO HUB: Módulo de Câmera (Mobile / Bypass) - V3.1 ]] --
 task.spawn(function()
     if not game:IsLoaded() then game.Loaded:Wait() end
@@ -2533,7 +2531,7 @@ task.spawn(function()
     crosshair.TextStrokeTransparency = 0.3
     crosshair.Parent = neroGui
 
-    -- Lógica de Animação (10% -> 100% por 2s -> 10%)
+    -- Lógica de Animação
     local lastInteraction = 0
     local animFast = TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
     local animSlow = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
@@ -2549,25 +2547,10 @@ task.spawn(function()
         end)
     end
 
-    -- Sistema de Câmera (ORIGINAL - Como era antes)
+    -- Sistema de Câmera
     local cameraFixed = false
     local thirdPersonBypass = false
     local crosshairActive = false
-
-    local function setThirdPersonBypass(state)
-        thirdPersonBypass = state
-        if state then
-            RunService:BindToRenderStep("NeroCamBypass", Enum.RenderPriority.Camera.Value + 1, function()
-                local char = player.Character
-                if char and char:FindFirstChild("HumanoidRootPart") then
-                    local hrp = char.HumanoidRootPart
-                    camera.CFrame = CFrame.new(hrp.Position) * camera.CFrame.Rotation * CFrame.new(0, 2, 10)
-                end
-            end)
-        else
-            RunService:UnbindFromRenderStep("NeroCamBypass")
-        end
-    end
 
     local function setFixedCamera(state)
         cameraFixed = state
@@ -2600,6 +2583,32 @@ task.spawn(function()
         end
     end
 
+    -- FUNÇÃO DOS 3 TOQUES: Terceira Pessoa Customizada com Fix Anti-Invisibilidade
+    local function setThirdPersonBypass(state)
+        thirdPersonBypass = state
+        if state then
+            RunService:BindToRenderStep("NeroCamBypass", Enum.RenderPriority.Camera.Value + 1, function()
+                local char = player.Character
+                if char then
+                    local hrp = char:FindFirstChild("HumanoidRootPart")
+                    if hrp then
+                        -- Mantém a câmera poscionada atrás de você (Offset: X=0, Y=2, Z=10)
+                        camera.CFrame = CFrame.new(hrp.Position) * camera.CFrame.Rotation * CFrame.new(0, 2, 10)
+                    end
+                    
+                    -- Força visibilidade do corpo mesmo em jogos que forçam 1ª pessoa
+                    for _, part in ipairs(char:GetDescendants()) do
+                        if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+                            part.LocalTransparencyModifier = 0
+                        end
+                    end
+                end
+            end)
+        else
+            RunService:UnbindFromRenderStep("NeroCamBypass")
+        end
+    end
+
     -- Lógica de Toques (1 Toque vs 2 Toques vs 3 Toques)
     local tapCount = 0
     local doubleTapTime = 0.35
@@ -2615,21 +2624,19 @@ task.spawn(function()
                     setFixedCamera(not cameraFixed)
                 elseif tapCount == 2 then
                     tapCount = 0
-                    setThirdPersonBypass(not thirdPersonBypass)
-                    if not thirdPersonBypass then
-                        setFixedCamera(cameraFixed)
-                    end
+                    setCrosshair(not crosshairActive)
                 elseif tapCount >= 3 then
                     tapCount = 0
-                    setCrosshair(not crosshairActive)
+                    setThirdPersonBypass(not thirdPersonBypass)
                 end
             end)
         elseif tapCount >= 3 then
             tapCount = 0
-            setCrosshair(not crosshairActive)
+            setThirdPersonBypass(not thirdPersonBypass)
         end
     end)
-end) 
+end)
+
 -- ==========================================================
 -- FLING SUPREMO (VERSÃO CORRIGIDA - FUNCIONA 100%)
 -- ==========================================================
