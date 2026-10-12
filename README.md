@@ -1482,69 +1482,48 @@ task.spawn(function()
     task.wait(1.5)
     PremiumNotify("OMNI ENGINE ACTIVATED", "Módulo Premium adaptado para: " .. GameName)
 end)
+
 -- ============================================================
--- 🔦 LANTERNA NERO — ULTRA FUTURE LIGHTING
--- INTEGRAÇÃO COM O SCRIPT-MÃE
+-- 🔦 LANTERNA NERO - FUTURE LIGHTING
 -- GUI ORIGINAL PRESERVADA
--- POTÊNCIA INICIAL: 5%
--- ALCANCE CONFIGURADO: 3000 STUDS
 -- ============================================================
 
 task.spawn(function()
     task.wait(0.1)
 
-    -- ========================================================
-    -- VARIÁVEIS ORIGINAIS
-    -- ========================================================
-
+    -- ===== VARIAVEIS =====
     local lightEnabled = false
     local lightBrightness = 5
     local spotLight = nil
-    local lightAttachment = nil
     local lightConnection = nil
-    local characterConnection = nil
 
-    local MIN_POWER = 5
-    local MAX_POWER = 100
+    -- ===== FUTURE LIGHTING =====
+    local Lighting = game:GetService("Lighting")
 
-    -- Alcance máximo configurado
-    local MAX_RANGE = 3000
+    pcall(function()
+        Lighting.Technology = Enum.Technology.Future
+    end)
 
-    -- Iluminação concentrada
-    local LIGHT_ANGLE = 55
-
-    local LIGHT_COLOR = Color3.fromRGB(255, 248, 232)
-
-    -- ========================================================
-    -- TOGGLE ORIGINAL
-    -- ========================================================
-
+    -- ===== TOGGLE NA POSIÇÃO 0 =====
     local LanternaTog, LanternaKnob, LanternaBtn =
         createToggle("LANTERNA", tabContainers[4], 0)
 
-    -- ========================================================
-    -- PAINEL ORIGINAL DE POTÊNCIA
-    -- ========================================================
-
+    -- ===== PAINEL DE POTÊNCIA (FUNDO PRETO) =====
     local powerPanel = Instance.new("Frame")
     powerPanel.Size = UDim2.new(1, -20, 0, 38)
     powerPanel.Position = UDim2.new(0, 10, 0, 48)
     powerPanel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
     powerPanel.BorderSizePixel = 0
     powerPanel.Parent = tabContainers[4]
+    Instance.new("UICorner", powerPanel).CornerRadius = UDim.new(0, 8)
 
-    Instance.new("UICorner", powerPanel).CornerRadius =
-        UDim.new(0, 8)
-
+    -- BORDA DO PAINEL
     local panelStroke = Instance.new("UIStroke", powerPanel)
     panelStroke.Color = Color3.fromRGB(255, 100, 0)
     panelStroke.Thickness = 1
     panelStroke.Transparency = 0
 
-    -- ========================================================
-    -- BOTÃO MENOS
-    -- ========================================================
-
+    -- ===== BOTÃO - =====
     local btnMinus = Instance.new("TextButton")
     btnMinus.Size = UDim2.new(0, 32, 0, 26)
     btnMinus.Position = UDim2.new(0, 6, 0.5, -13)
@@ -1556,13 +1535,12 @@ task.spawn(function()
     btnMinus.Font = Enum.Font.GothamSemibold
     btnMinus.AutoButtonColor = false
     btnMinus.Parent = powerPanel
-
-    Instance.new("UICorner", btnMinus).CornerRadius =
-        UDim.new(0, 6)
+    Instance.new("UICorner", btnMinus).CornerRadius = UDim.new(0, 6)
 
     local strokeMinus = Instance.new("UIStroke", btnMinus)
     strokeMinus.Color = Color3.fromRGB(255, 100, 0)
     strokeMinus.Thickness = 0.5
+    strokeMinus.Transparency = 0
 
     btnMinus.MouseEnter:Connect(function()
         btnMinus.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
@@ -1572,10 +1550,7 @@ task.spawn(function()
         btnMinus.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
     end)
 
-    -- ========================================================
-    -- DISPLAY ORIGINAL
-    -- ========================================================
-
+    -- ===== DISPLAY CENTRAL =====
     local displayText = Instance.new("TextLabel")
     displayText.Size = UDim2.new(0, 120, 0, 26)
     displayText.Position = UDim2.new(0.5, -60, 0.5, -13)
@@ -1586,18 +1561,14 @@ task.spawn(function()
     displayText.TextSize = 13
     displayText.Font = Enum.Font.GothamMedium
     displayText.Parent = powerPanel
-
-    Instance.new("UICorner", displayText).CornerRadius =
-        UDim.new(0, 6)
+    Instance.new("UICorner", displayText).CornerRadius = UDim.new(0, 6)
 
     local strokeDisplay = Instance.new("UIStroke", displayText)
     strokeDisplay.Color = Color3.fromRGB(255, 100, 0)
     strokeDisplay.Thickness = 0.5
+    strokeDisplay.Transparency = 0
 
-    -- ========================================================
-    -- BOTÃO MAIS
-    -- ========================================================
-
+    -- ===== BOTÃO + =====
     local btnPlus = Instance.new("TextButton")
     btnPlus.Size = UDim2.new(0, 32, 0, 26)
     btnPlus.Position = UDim2.new(1, -38, 0.5, -13)
@@ -1609,13 +1580,12 @@ task.spawn(function()
     btnPlus.Font = Enum.Font.GothamSemibold
     btnPlus.AutoButtonColor = false
     btnPlus.Parent = powerPanel
-
-    Instance.new("UICorner", btnPlus).CornerRadius =
-        UDim.new(0, 6)
+    Instance.new("UICorner", btnPlus).CornerRadius = UDim.new(0, 6)
 
     local strokePlus = Instance.new("UIStroke", btnPlus)
     strokePlus.Color = Color3.fromRGB(255, 100, 0)
     strokePlus.Thickness = 0.5
+    strokePlus.Transparency = 0
 
     btnPlus.MouseEnter:Connect(function()
         btnPlus.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
@@ -1625,54 +1595,33 @@ task.spawn(function()
         btnPlus.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
     end)
 
-    -- ========================================================
-    -- CONFIGURAÇÃO DA LUZ
-    -- ========================================================
-
-    local function getLightBrightness()
-        -- Mantém 5% como potência inicial.
-        -- O alcance não depende da potência.
-        return 150 * (lightBrightness / 100)
-    end
-
+    -- ===== ATUALIZAR POTÊNCIA =====
     local function updateDisplay()
-        displayText.Text =
-            "Potencia: " .. math.round(lightBrightness) .. "%"
+        displayText.Text = "Potencia: " .. math.round(lightBrightness) .. "%"
 
         if spotLight then
-            spotLight.Brightness = getLightBrightness()
-            spotLight.Range = MAX_RANGE
-            spotLight.Angle = LIGHT_ANGLE
+            spotLight.Brightness = lightBrightness / 100 * 150
+            spotLight.Range = 3000
         end
     end
 
-    -- ========================================================
-    -- DESTRUIR A LUZ ANTERIOR
-    -- ========================================================
-
-    local function removeLight()
-        if spotLight then
-            spotLight:Destroy()
-            spotLight = nil
+    -- ===== BOTÕES DE POTÊNCIA =====
+    btnMinus.MouseButton1Click:Connect(function()
+        if lightBrightness > 0 then
+            lightBrightness = math.max(0, lightBrightness - 1)
+            updateDisplay()
         end
+    end)
 
-        if lightAttachment then
-            lightAttachment:Destroy()
-            lightAttachment = nil
+    btnPlus.MouseButton1Click:Connect(function()
+        if lightBrightness < 100 then
+            lightBrightness = math.min(100, lightBrightness + 1)
+            updateDisplay()
         end
-    end
+    end)
 
-    -- ========================================================
-    -- CRIAR A LANTERNA
-    -- ========================================================
-
+    -- ===== CRIAR LANTERNA FUTURE =====
     local function createNeroLight(char)
-        char = char or LP.Character
-
-        if not char then
-            return
-        end
-
         local head = char:FindFirstChild("Head")
             or char:FindFirstChild("HumanoidRootPart")
 
@@ -1680,254 +1629,93 @@ task.spawn(function()
             return
         end
 
-        removeLight()
-
-        -- Attachment fica na cabeça, sem peça visível.
-        lightAttachment = Instance.new("Attachment")
-        lightAttachment.Name = "NeroLightAttachment"
-        lightAttachment.Position = Vector3.new(0, 0, -0.35)
-        lightAttachment.Parent = head
+        if spotLight then
+            spotLight:Destroy()
+            spotLight = nil
+        end
 
         spotLight = Instance.new("SpotLight")
         spotLight.Name = "NeroLanterna"
+        spotLight.Brightness = lightBrightness / 100 * 150
+        spotLight.Range = 3000
+        spotLight.Angle = 70
+        spotLight.Color = Color3.fromRGB(255, 255, 240)
         spotLight.Face = Enum.NormalId.Front
-
-        spotLight.Brightness = getLightBrightness()
-        spotLight.Range = MAX_RANGE
-        spotLight.Angle = LIGHT_ANGLE
-        spotLight.Color = LIGHT_COLOR
-
-        -- Sombras reais suportadas pelo SpotLight.
         spotLight.Shadows = true
-        spotLight.Enabled = true
-        spotLight.Parent = lightAttachment
-
-        updateDisplay()
+        spotLight.Parent = head
     end
 
-    -- ========================================================
-    -- LIGAR / DESLIGAR
-    -- ========================================================
-
+    -- ===== LIGAR / DESLIGAR =====
     local function toggleLight()
+        local char = LP.Character
+        if not char then
+            return
+        end
+
         lightEnabled = not lightEnabled
 
         if lightEnabled then
-            createNeroLight(LP.Character)
+            createNeroLight(char)
 
             if lightConnection then
                 lightConnection:Disconnect()
                 lightConnection = nil
             end
 
-            -- Verifica continuamente se o personagem renasceu
-            -- ou se a luz foi removida.
-            lightConnection = RS.Heartbeat:Connect(function()
+            lightConnection = RS.RenderStepped:Connect(function()
                 if not lightEnabled then
                     return
                 end
 
-                local char = LP.Character
-
-                if not char then
+                local currentChar = LP.Character
+                if not currentChar then
                     return
                 end
 
-                if not lightAttachment
-                    or not lightAttachment.Parent
-                    or not spotLight
-                    or not spotLight.Parent then
+                local newHead = currentChar:FindFirstChild("Head")
+                    or currentChar:FindFirstChild("HumanoidRootPart")
 
-                    createNeroLight(char)
+                if newHead and spotLight and spotLight.Parent ~= newHead then
+                    spotLight.Parent = newHead
                 end
             end)
         else
+            if spotLight then
+                spotLight:Destroy()
+                spotLight = nil
+            end
+
             if lightConnection then
                 lightConnection:Disconnect()
                 lightConnection = nil
             end
-
-            removeLight()
         end
 
-        updateToggle(
-            LanternaTog,
-            LanternaKnob,
-            lightEnabled
-        )
+        updateToggle(LanternaTog, LanternaKnob, lightEnabled)
     end
 
-    -- ========================================================
-    -- CONTROLES DE POTÊNCIA
-    -- ========================================================
+    -- ===== TOGGLE ORIGINAL =====
+    LanternaBtn.MouseButton1Click:Connect(toggleLight)
 
-    btnMinus.Activated:Connect(function()
-        lightBrightness = math.clamp(
-            lightBrightness - 1,
-            MIN_POWER,
-            MAX_POWER
-        )
+    -- ===== RENASCIMENTO =====
+    LP.CharacterAdded:Connect(function(chr)
+        repeat
+            task.wait()
+        until chr:FindFirstChild("Head")
+            or chr:FindFirstChild("HumanoidRootPart")
 
-        updateDisplay()
+        task.wait(0.3)
+
+        if lightEnabled then
+            createNeroLight(chr)
+        end
     end)
 
-    btnPlus.Activated:Connect(function()
-        lightBrightness = math.clamp(
-            lightBrightness + 1,
-            MIN_POWER,
-            MAX_POWER
-        )
-
-        updateDisplay()
-    end)
-
-    -- ========================================================
-    -- TOGGLE ORIGINAL
-    -- ========================================================
-
-    LanternaBtn.Activated:Connect(toggleLight)
-
-    -- ========================================================
-    -- RENASCIMENTO DO PERSONAGEM
-    -- ========================================================
-
-    characterConnection = LP.CharacterAdded:Connect(function(char)
-        task.spawn(function()
-            local head = char:WaitForChild("Head", 10)
-
-            if not head then
-                head = char:WaitForChild("HumanoidRootPart", 5)
-            end
-
-            if not head then
-                return
-            end
-
-            task.wait(0.3)
-
-            if lightEnabled then
-                createNeroLight(char)
-            end
-        end)
-    end)
-
-    -- ========================================================
-    -- INICIALIZAÇÃO
-    -- ========================================================
-
+    -- ===== INICIALIZAÇÃO =====
     updateDisplay()
 
-    print(
-        "[LANTERNA NERO] Future Lighting carregada | "
-        .. "Potência inicial: 5% | Alcance configurado: 3000 studs"
-    )
+    print("[LANTERNA NERO] FUTURE | Alcance: 3000 studs | Início: 5%")
 end)
-
---==============================================================
--- ATUALIZAR INTERFACE
---==============================================================
-
-local function updateInterface()
-    if powerLabel then
-        powerLabel.Text = "POTÊNCIA: " .. power .. "%"
-    end
-
-    if toggleButton then
-        if enabled then
-            toggleButton.Text = "LANTERNA: LIGADA"
-            toggleButton.BackgroundColor3 = Color3.fromRGB(190, 85, 25)
-        else
-            toggleButton.Text = "LANTERNA: DESLIGADA"
-            toggleButton.BackgroundColor3 = Color3.fromRGB(55, 58, 65)
-        end
-    end
-end
-
---==============================================================
--- CONTROLES
---==============================================================
-
-local function setEnabled(state)
-    enabled = state
-
-    if enabled then
-        reduceBloom()
-
-        if not spotlight or not spotlight.Parent then
-            createLight()
-        end
-    end
-
-    updateLight()
-    updateInterface()
-end
-
-local function setPower(value)
-    power = math.clamp(
-        value,
-        CONFIG.MIN_POWER,
-        CONFIG.MAX_POWER
-    )
-
-    updateLight()
-    updateInterface()
-end
-
---==============================================================
--- BOTÕES
---==============================================================
-
-createInterface()
-createLight()
-updateInterface()
-
-toggleButton.Activated:Connect(function()
-    setEnabled(not enabled)
-end)
-
-minusButton.Activated:Connect(function()
-    setPower(power - 5)
-end)
-
-plusButton.Activated:Connect(function()
-    setPower(power + 5)
-end)
-
---==============================================================
--- RENASCIMENTO DO PERSONAGEM
---==============================================================
-
-Player.CharacterAdded:Connect(function(newCharacter)
-    character = newCharacter
-
-    task.wait(1)
-
-    createLight()
-    updateLight()
-end)
-
---==============================================================
--- API OPCIONAL PARA O SCRIPT-MÃE
---==============================================================
-
-_G.NERO_FLASHLIGHT = {
-    Toggle = setEnabled,
-    SetPower = setPower,
-
-    GetPower = function()
-        return power
-    end,
-
-    IsEnabled = function()
-        return enabled
-    end,
-
-    GetRange = function()
-        return CONFIG.MAX_RANGE
-    end
-}
-
-print("NERO ULTRA FUTURE carregada | Potência inicial: 5% | Alcance: 250 studs")
 
  -- ==================== MÓDULO: SONS E ANIMAÇÕES ONE UI + MÚSICA ====================
 local isAnimating = false
