@@ -1482,238 +1482,401 @@ task.spawn(function()
     task.wait(1.5)
     PremiumNotify("OMNI ENGINE ACTIVATED", "Módulo Premium adaptado para: " .. GameName)
 end)
--- ============================================================
--- 🔦 LANTERNA NERO - VERSÃO FINAL (CORRETA)
--- ============================================================
+--==============================================================
+-- NERO ULTRA FUTURE | DEFINITIVA
+-- Roblox | LocalScript
+-- Potência inicial: 5%
+-- Alcance: 250 studs
+-- Interface móvel incluída
+--==============================================================
 
-task.spawn(function()
-    task.wait(0.1)
-    
-    -- ===== VARIAVEIS =====
-    local lightEnabled = false
-    local lightBrightness = 5
-    local spotLight = nil
-    local lightConnection = nil
-    
-    -- ===== TOGGLE NA POSIÇÃO 0 =====
-    local LanternaTog, LanternaKnob, LanternaBtn = createToggle("LANTERNA", tabContainers[4], 0)
-    
-    -- ===== PAINEL DE POTÊNCIA (FUNDO PRETO) =====
-    local powerPanel = Instance.new("Frame")
-    powerPanel.Size = UDim2.new(1, -20, 0, 38)
-    powerPanel.Position = UDim2.new(0, 10, 0, 48)
-    powerPanel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    powerPanel.BorderSizePixel = 0
-    powerPanel.Parent = tabContainers[4]
-    Instance.new("UICorner", powerPanel).CornerRadius = UDim.new(0, 8)
-    
-    -- BORDA DO PAINEL
-    local panelStroke = Instance.new("UIStroke", powerPanel)
-    panelStroke.Color = Color3.fromRGB(255, 100, 0)
-    panelStroke.Thickness = 1
-    panelStroke.Transparency = 0
-    
-    -- ===== BOTÃO - (FUNDO PRETO, BORDA FINA, TEXTO LARANJA) =====
-    local btnMinus = Instance.new("TextButton")
-    btnMinus.Size = UDim2.new(0, 32, 0, 26)
-    btnMinus.Position = UDim2.new(0, 6, 0.5, -13)
-    btnMinus.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    btnMinus.BorderSizePixel = 0
-    btnMinus.Text = "−"
-    btnMinus.TextColor3 = Color3.fromRGB(255, 100, 0)
-    btnMinus.TextSize = 18
-    btnMinus.Font = Enum.Font.GothamSemibold
-    btnMinus.AutoButtonColor = false
-    btnMinus.Parent = powerPanel
-    Instance.new("UICorner", btnMinus).CornerRadius = UDim.new(0, 6)
-    
-    -- BORDA FINA NO BOTÃO -
-    local strokeMinus = Instance.new("UIStroke", btnMinus)
-    strokeMinus.Color = Color3.fromRGB(255, 100, 0)
-    strokeMinus.Thickness = 0.5
-    strokeMinus.Transparency = 0
-    
-    -- HOVER
-    btnMinus.MouseEnter:Connect(function()
-        btnMinus.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-    end)
-    btnMinus.MouseLeave:Connect(function()
-        btnMinus.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    end)
-    
-    -- ===== DISPLAY CENTRAL (FUNDO PRETO, BORDA FINA, TEXTO LARANJA) =====
-    local displayText = Instance.new("TextLabel")
-    displayText.Size = UDim2.new(0, 120, 0, 26)
-    displayText.Position = UDim2.new(0.5, -60, 0.5, -13)
-    displayText.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    displayText.BorderSizePixel = 0
-    displayText.Text = "Potencia: 5%"
-    displayText.TextColor3 = Color3.fromRGB(255, 100, 0)
-    displayText.TextSize = 13
-    displayText.Font = Enum.Font.GothamMedium
-    displayText.Parent = powerPanel
-    Instance.new("UICorner", displayText).CornerRadius = UDim.new(0, 6)
-    
-    -- BORDA FINA NO DISPLAY
-    local strokeDisplay = Instance.new("UIStroke", displayText)
-    strokeDisplay.Color = Color3.fromRGB(255, 100, 0)
-    strokeDisplay.Thickness = 0.5
-    strokeDisplay.Transparency = 0
-    
-    -- ===== BOTÃO + (FUNDO PRETO, BORDA FINA, TEXTO LARANJA) =====
-    local btnPlus = Instance.new("TextButton")
-    btnPlus.Size = UDim2.new(0, 32, 0, 26)
-    btnPlus.Position = UDim2.new(1, -38, 0.5, -13)
-    btnPlus.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    btnPlus.BorderSizePixel = 0
-    btnPlus.Text = "+"
-    btnPlus.TextColor3 = Color3.fromRGB(255, 100, 0)
-    btnPlus.TextSize = 18
-    btnPlus.Font = Enum.Font.GothamSemibold
-    btnPlus.AutoButtonColor = false
-    btnPlus.Parent = powerPanel
-    Instance.new("UICorner", btnPlus).CornerRadius = UDim.new(0, 6)
-    
-    -- BORDA FINA NO BOTÃO +
-    local strokePlus = Instance.new("UIStroke", btnPlus)
-    strokePlus.Color = Color3.fromRGB(255, 100, 0)
-    strokePlus.Thickness = 0.5
-    strokePlus.Transparency = 0
-    
-    -- HOVER
-    btnPlus.MouseEnter:Connect(function()
-        btnPlus.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-    end)
-    btnPlus.MouseLeave:Connect(function()
-        btnPlus.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    end)
-    
-    -- ===== FUNÇÃO ATUALIZAR DISPLAY =====
-    local function updateDisplay()
-        displayText.Text = "Potencia: " .. math.round(lightBrightness) .. "%"
-        
-        if spotLight then
-            spotLight.Brightness = lightBrightness / 100 * 150
-            spotLight.Range = 3000
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Lighting = game:GetService("Lighting")
+local UserInputService = game:GetService("UserInputService")
+
+local Player = Players.LocalPlayer
+local PlayerGui = Player:WaitForChild("PlayerGui")
+
+--==============================================================
+-- CONFIGURAÇÕES
+--==============================================================
+
+local CONFIG = {
+    INITIAL_POWER = 5,
+    MIN_POWER = 5,
+    MAX_POWER = 100,
+
+    MAX_RANGE = 250,
+    MAX_BRIGHTNESS = 80,
+    BEAM_ANGLE = 48,
+
+    LIGHT_COLOR = Color3.fromRGB(255, 248, 235),
+
+    REDUCE_BLOOM = true,
+    ENABLE_SHADOWS = true
+}
+
+local power = CONFIG.INITIAL_POWER
+local enabled = false
+
+local character
+local head
+local attachment
+local spotlight
+
+local gui
+local powerLabel
+local toggleButton
+local minusButton
+local plusButton
+
+local connections = {}
+
+--==============================================================
+-- BLOOM: REDUZ O EXCESSO DE BRILHO DIFUSO
+--==============================================================
+
+local function reduceBloom()
+    if not CONFIG.REDUCE_BLOOM then
+        return
+    end
+
+    for _, effect in ipairs(Lighting:GetChildren()) do
+        if effect:IsA("BloomEffect") then
+            effect.Intensity = math.min(effect.Intensity, 0.12)
+            effect.Size = math.min(effect.Size, 12)
+            effect.Threshold = math.max(effect.Threshold, 2)
         end
     end
-    
-    -- ===== EVENTOS DOS BOTÕES =====
-    btnMinus.MouseButton1Click:Connect(function()
-        if lightBrightness > 0 then
-            lightBrightness = lightBrightness - 1
-            if lightBrightness < 0 then lightBrightness = 0 end
-            updateDisplay()
+end
+
+--==============================================================
+-- DESTRUIR LUZ ANTIGA
+--==============================================================
+
+local function removeLight()
+    if spotlight then
+        spotlight:Destroy()
+        spotlight = nil
+    end
+
+    if attachment then
+        attachment:Destroy()
+        attachment = nil
+    end
+end
+
+--==============================================================
+-- ATUALIZAR POTÊNCIA
+-- O ALCANCE PERMANECE EM 250 STUDS
+--==============================================================
+
+local function updateLight()
+    if not spotlight then
+        return
+    end
+
+    local multiplier = power / 100
+
+    spotlight.Brightness = CONFIG.MAX_BRIGHTNESS * multiplier
+    spotlight.Range = CONFIG.MAX_RANGE
+    spotlight.Angle = CONFIG.BEAM_ANGLE
+    spotlight.Color = CONFIG.LIGHT_COLOR
+    spotlight.Shadows = CONFIG.ENABLE_SHADOWS
+    spotlight.Enabled = enabled
+end
+
+--==============================================================
+-- CRIAR LANTERNA
+--==============================================================
+
+local function createLight()
+    removeLight()
+
+    character = Player.Character
+
+    if not character then
+        return
+    end
+
+    head = character:WaitForChild("Head", 5)
+
+    if not head then
+        return
+    end
+
+    attachment = Instance.new("Attachment")
+    attachment.Name = "NERO_UltraAttachment"
+    attachment.Position = Vector3.new(0, 0, -0.35)
+    attachment.Parent = head
+
+    spotlight = Instance.new("SpotLight")
+    spotlight.Name = "NERO_ULTRA_FUTURE"
+    spotlight.Face = Enum.NormalId.Front
+    spotlight.Brightness = CONFIG.MAX_BRIGHTNESS * (power / 100)
+    spotlight.Range = CONFIG.MAX_RANGE
+    spotlight.Angle = CONFIG.BEAM_ANGLE
+    spotlight.Color = CONFIG.LIGHT_COLOR
+    spotlight.Shadows = CONFIG.ENABLE_SHADOWS
+    spotlight.Enabled = enabled
+    spotlight.Parent = attachment
+
+    updateLight()
+end
+
+--==============================================================
+-- INTERFACE
+--==============================================================
+
+local function createInterface()
+    local old = PlayerGui:FindFirstChild("NERO_ULTRA_GUI")
+
+    if old then
+        old:Destroy()
+    end
+
+    gui = Instance.new("ScreenGui")
+    gui.Name = "NERO_ULTRA_GUI"
+    gui.ResetOnSpawn = false
+    gui.IgnoreGuiInset = true
+    gui.DisplayOrder = 100
+    gui.Parent = PlayerGui
+
+    local panel = Instance.new("Frame")
+    panel.Name = "Panel"
+    panel.Size = UDim2.fromOffset(230, 145)
+    panel.Position = UDim2.new(1, -245, 0.5, -72)
+    panel.BackgroundColor3 = Color3.fromRGB(15, 17, 22)
+    panel.BackgroundTransparency = 0.08
+    panel.BorderSizePixel = 0
+    panel.Parent = gui
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 12)
+    corner.Parent = panel
+
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = Color3.fromRGB(255, 125, 35)
+    stroke.Thickness = 1.5
+    stroke.Parent = panel
+
+    local title = Instance.new("TextLabel")
+    title.Size = UDim2.new(1, -16, 0, 28)
+    title.Position = UDim2.fromOffset(8, 5)
+    title.BackgroundTransparency = 1
+    title.Text = "NERO | ULTRA FUTURE"
+    title.TextColor3 = Color3.fromRGB(255, 145, 55)
+    title.TextSize = 15
+    title.Font = Enum.Font.GothamBold
+    title.Parent = panel
+
+    toggleButton = Instance.new("TextButton")
+    toggleButton.Size = UDim2.new(1, -20, 0, 35)
+    toggleButton.Position = UDim2.fromOffset(10, 38)
+    toggleButton.BackgroundColor3 = Color3.fromRGB(55, 58, 65)
+    toggleButton.Text = "LANTERNA: DESLIGADA"
+    toggleButton.TextColor3 = Color3.new(1, 1, 1)
+    toggleButton.TextSize = 12
+    toggleButton.Font = Enum.Font.GothamBold
+    toggleButton.Parent = panel
+
+    local toggleCorner = Instance.new("UICorner")
+    toggleCorner.CornerRadius = UDim.new(0, 8)
+    toggleCorner.Parent = toggleButton
+
+    minusButton = Instance.new("TextButton")
+    minusButton.Size = UDim2.fromOffset(42, 32)
+    minusButton.Position = UDim2.fromOffset(10, 84)
+    minusButton.BackgroundColor3 = Color3.fromRGB(45, 47, 54)
+    minusButton.Text = "−"
+    minusButton.TextColor3 = Color3.new(1, 1, 1)
+    minusButton.TextSize = 22
+    minusButton.Font = Enum.Font.GothamBold
+    minusButton.Parent = panel
+
+    local minusCorner = Instance.new("UICorner")
+    minusCorner.CornerRadius = UDim.new(0, 8)
+    minusCorner.Parent = minusButton
+
+    powerLabel = Instance.new("TextLabel")
+    powerLabel.Size = UDim2.fromOffset(110, 32)
+    powerLabel.Position = UDim2.fromOffset(60, 84)
+    powerLabel.BackgroundTransparency = 1
+    powerLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    powerLabel.TextSize = 14
+    powerLabel.Font = Enum.Font.GothamBold
+    powerLabel.Parent = panel
+
+    plusButton = Instance.new("TextButton")
+    plusButton.Size = UDim2.fromOffset(42, 32)
+    plusButton.Position = UDim2.new(1, -52, 0, 84)
+    plusButton.BackgroundColor3 = Color3.fromRGB(45, 47, 54)
+    plusButton.Text = "+"
+    plusButton.TextColor3 = Color3.new(1, 1, 1)
+    plusButton.TextSize = 22
+    plusButton.Font = Enum.Font.GothamBold
+    plusButton.Parent = panel
+
+    local plusCorner = Instance.new("UICorner")
+    plusCorner.CornerRadius = UDim.new(0, 8)
+    plusCorner.Parent = plusButton
+
+    local rangeLabel = Instance.new("TextLabel")
+    rangeLabel.Size = UDim2.new(1, -16, 0, 18)
+    rangeLabel.Position = UDim2.fromOffset(8, 122)
+    rangeLabel.BackgroundTransparency = 1
+    rangeLabel.Text = "ALCANCE MÁXIMO: 250 STUDS"
+    rangeLabel.TextColor3 = Color3.fromRGB(180, 185, 195)
+    rangeLabel.TextSize = 10
+    rangeLabel.Font = Enum.Font.Gotham
+    rangeLabel.Parent = panel
+
+    -- Permite arrastar a interface em telas móveis e PC.
+    local dragging = false
+    local dragStart
+    local startPosition
+
+    title.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPosition = panel.Position
         end
     end)
-    
-    btnPlus.MouseButton1Click:Connect(function()
-        if lightBrightness < 100 then
-            lightBrightness = lightBrightness + 1
-            if lightBrightness > 100 then lightBrightness = 100 end
-            updateDisplay()
+
+    UserInputService.InputChanged:Connect(function(input)
+        if not dragging then
+            return
+        end
+
+        if input.UserInputType == Enum.UserInputType.MouseMovement
+        or input.UserInputType == Enum.UserInputType.Touch then
+            local delta = input.Position - dragStart
+
+            panel.Position = UDim2.new(
+                startPosition.X.Scale,
+                startPosition.X.Offset + delta.X,
+                startPosition.Y.Scale,
+                startPosition.Y.Offset + delta.Y
+            )
         end
     end)
-    
-    -- ===== FUNÇÃO DA LANTERNA (COM ILUMINAÇÃO FLUIDA) =====
-    local function toggleLight()
-        local char = LP.Character
-        if not char then return end
-        
-        lightEnabled = not lightEnabled
-        
-        if lightEnabled then
-            local head = char:FindFirstChild("Head") or char:FindFirstChild("HumanoidRootPart")
-            if head then
-                if spotLight then spotLight:Destroy() end
-                
-                spotLight = Instance.new("SpotLight")
-                spotLight.Name = "NeroLanterna"
-                spotLight.Brightness = lightBrightness / 100 * 150
-                spotLight.Range = 3000
-                spotLight.Angle = 70
-                spotLight.Color = Color3.fromRGB(255, 255, 240)
-                spotLight.Face = Enum.NormalId.Front
-                spotLight.Shadows = false
-                spotLight.Parent = head
-                
-                for _, part in pairs(char:GetChildren()) do
-                    if part:IsA("BasePart") then
-                        part.Material = Enum.Material.Neon
-                    end
-                end
-                
-                -- ATUALIZAÇÃO FLUIDA (SEGUE A CABEÇA SEM TRAVAR)
-                if lightConnection then lightConnection:Disconnect() end
-                lightConnection = RS.RenderStepped:Connect(function()
-                    if spotLight and spotLight.Parent then
-                        local newHead = LP.Character and (LP.Character:FindFirstChild("Head") or LP.Character:FindFirstChild("HumanoidRootPart"))
-                        if newHead and newHead ~= spotLight.Parent then
-                            spotLight.Parent = newHead
-                        end
-                    end
-                end)
-            end
+
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = false
+        end
+    end)
+end
+
+--==============================================================
+-- ATUALIZAR INTERFACE
+--==============================================================
+
+local function updateInterface()
+    if powerLabel then
+        powerLabel.Text = "POTÊNCIA: " .. power .. "%"
+    end
+
+    if toggleButton then
+        if enabled then
+            toggleButton.Text = "LANTERNA: LIGADA"
+            toggleButton.BackgroundColor3 = Color3.fromRGB(190, 85, 25)
         else
-            if spotLight then
-                spotLight:Destroy()
-                spotLight = nil
-            end
-            if lightConnection then
-                lightConnection:Disconnect()
-                lightConnection = nil
-            end
-            
-            local char = LP.Character
-            if char then
-                for _, part in pairs(char:GetChildren()) do
-                    if part:IsA("BasePart") then
-                        part.Material = Enum.Material.Plastic
-                    end
-                end
-            end
+            toggleButton.Text = "LANTERNA: DESLIGADA"
+            toggleButton.BackgroundColor3 = Color3.fromRGB(55, 58, 65)
         end
-        
-        updateToggle(LanternaTog, LanternaKnob, lightEnabled)
     end
-    
-    -- ===== EVENTO DO TOGGLE =====
-    LanternaBtn.MouseButton1Click:Connect(toggleLight)
-    
-    -- ===== PERSISTÊNCIA NA MORTE =====
-    LP.CharacterAdded:Connect(function(chr)
-        repeat task.wait() until chr and (chr:FindFirstChild("Head") or chr:FindFirstChild("HumanoidRootPart"))
-        task.wait(0.3)
-        
-        if lightEnabled then
-            local head = chr:FindFirstChild("Head") or chr:FindFirstChild("HumanoidRootPart")
-            if head then
-                if spotLight then spotLight:Destroy() end
-                
-                spotLight = Instance.new("SpotLight")
-                spotLight.Name = "NeroLanterna"
-                spotLight.Brightness = lightBrightness / 100 * 150
-                spotLight.Range = 3000
-                spotLight.Angle = 70
-                spotLight.Color = Color3.fromRGB(255, 255, 240)
-                spotLight.Face = Enum.NormalId.Front
-                spotLight.Shadows = false
-                spotLight.Parent = head
-                
-                for _, part in pairs(chr:GetChildren()) do
-                    if part:IsA("BasePart") then
-                        part.Material = Enum.Material.Neon
-                    end
-                end
-            end
+end
+
+--==============================================================
+-- CONTROLES
+--==============================================================
+
+local function setEnabled(state)
+    enabled = state
+
+    if enabled then
+        reduceBloom()
+
+        if not spotlight or not spotlight.Parent then
+            createLight()
         end
-    end)
-    
-    -- ===== INICIALIZA =====
-    updateDisplay()
-    
-    print("[LANTERNA] Carregado! | Alcance: 3000 studs | Início: 5%")
+    end
+
+    updateLight()
+    updateInterface()
+end
+
+local function setPower(value)
+    power = math.clamp(
+        value,
+        CONFIG.MIN_POWER,
+        CONFIG.MAX_POWER
+    )
+
+    updateLight()
+    updateInterface()
+end
+
+--==============================================================
+-- BOTÕES
+--==============================================================
+
+createInterface()
+createLight()
+updateInterface()
+
+toggleButton.Activated:Connect(function()
+    setEnabled(not enabled)
 end)
+
+minusButton.Activated:Connect(function()
+    setPower(power - 5)
+end)
+
+plusButton.Activated:Connect(function()
+    setPower(power + 5)
+end)
+
+--==============================================================
+-- RENASCIMENTO DO PERSONAGEM
+--==============================================================
+
+Player.CharacterAdded:Connect(function(newCharacter)
+    character = newCharacter
+
+    task.wait(1)
+
+    createLight()
+    updateLight()
+end)
+
+--==============================================================
+-- API OPCIONAL PARA O SCRIPT-MÃE
+--==============================================================
+
+_G.NERO_FLASHLIGHT = {
+    Toggle = setEnabled,
+    SetPower = setPower,
+
+    GetPower = function()
+        return power
+    end,
+
+    IsEnabled = function()
+        return enabled
+    end,
+
+    GetRange = function()
+        return CONFIG.MAX_RANGE
+    end
+}
+
+print("NERO ULTRA FUTURE carregada | Potência inicial: 5% | Alcance: 250 studs")
 
  -- ==================== MÓDULO: SONS E ANIMAÇÕES ONE UI + MÚSICA ====================
 local isAnimating = false
