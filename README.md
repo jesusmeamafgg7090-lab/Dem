@@ -203,7 +203,7 @@ TabFrame.Active = false
 TabFrame.Selectable = false
 
 local tabs = {}
-local tabNames = {"HUNTERS", "MAYHEM", "Teleporte", "VISUAIS", "CRÉDITOS", "NEXUS", "OMNIVERSE", "CATACLYSM", "MATRIX", "MIRAGE", "OVERDRIVE", "NETWORK"}
+local tabNames = {"HUNTERS", "MAYHEM", "Teleporte", "VISUAIS", "CRÉDITOS", "NEXUS", "OMNIVERSE", "CATACLYSM", "MATRIX", "MIRAGE", "OVERDRIVE", "NETWORK", "shaders"}
 local tabContainers = {}
 
 local tabBtnHeight = 30
