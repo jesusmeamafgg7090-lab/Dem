@@ -5862,10 +5862,21 @@ task.spawn(function()
         end
     end)
 end)
-
-
 --========== ABA 13: SHADERS ==============--
-do
+task.spawn(function()
+    task.wait(0.3)
+
+    local tab = tabContainers and tabContainers[13]
+    if not tab then
+        warn("[Shaders] Aba 13 nao encontrada. Adicione 'Shaders' em tabNames.")
+        return
+    end
+
+    local L = game:GetService("Lighting")
+
+    tab.CanvasSize = UDim2.new(0, 0, 0, 720)
+
+    -- ========== SCRIPTS (INTACTOS) ==========
     local SCRIPT_V1 = [==[
 local Workspace = game:GetService("Workspace")
 local RANGE = 24
@@ -6353,40 +6364,41 @@ return function()
 end
 ]==]
 
+    -- ========== SNAPSHOT / RESTORE ==========
     local function snapBase()
         return {
-            Brightness = Lighting.Brightness,
-            ExposureCompensation = Lighting.ExposureCompensation,
-            Ambient = Lighting.Ambient,
-            OutdoorAmbient = Lighting.OutdoorAmbient,
-            ClockTime = Lighting.ClockTime,
-            ShadowSoftness = Lighting.ShadowSoftness,
-            GlobalShadows = Lighting.GlobalShadows,
+            Brightness = L.Brightness,
+            ExposureCompensation = L.ExposureCompensation,
+            Ambient = L.Ambient,
+            OutdoorAmbient = L.OutdoorAmbient,
+            ClockTime = L.ClockTime,
+            ShadowSoftness = L.ShadowSoftness,
+            GlobalShadows = L.GlobalShadows,
         }
     end
     local function restoreBase(s)
         if not s then return end
         pcall(function()
-            Lighting.Brightness = s.Brightness
-            Lighting.ExposureCompensation = s.ExposureCompensation
-            Lighting.Ambient = s.Ambient
-            Lighting.OutdoorAmbient = s.OutdoorAmbient
-            Lighting.ClockTime = s.ClockTime
-            Lighting.ShadowSoftness = s.ShadowSoftness
-            Lighting.GlobalShadows = s.GlobalShadows
+            L.Brightness = s.Brightness
+            L.ExposureCompensation = s.ExposureCompensation
+            L.Ambient = s.Ambient
+            L.OutdoorAmbient = s.OutdoorAmbient
+            L.ClockTime = s.ClockTime
+            L.ShadowSoftness = s.ShadowSoftness
+            L.GlobalShadows = s.GlobalShadows
         end)
     end
 
-    local function makeSimpleActivator(scriptSrc, warnName)
+    -- ========== ACTIVATOR ==========
+    local function makeActivator(src, name)
         local cleanup = nil
         return {
             start = function()
                 if cleanup then return end
-                local fn = loadstring(scriptSrc)
-                if not fn then warn("[RTX] loadstring falhou: " .. warnName); return end
-                local ok, result = pcall(fn)
-                if not ok then warn("["..warnName.."] " .. tostring(result)); return end
-                cleanup = result
+                local ok, fn = pcall(function() return loadstring(src) end)
+                if not ok or not fn then warn("[Shaders] " .. name .. " loadstring falhou"); return end
+                local ok2, res = pcall(fn)
+                if ok2 then cleanup = res end
             end,
             stop = function()
                 if cleanup then pcall(cleanup); cleanup = nil end
@@ -6394,34 +6406,33 @@ end
         }
     end
 
-    local activatorV1 = makeSimpleActivator(SCRIPT_V1, "RTX V1")
-    local activatorV2 = makeSimpleActivator(SCRIPT_V2, "RTX V2")
-    local activatorV3 = makeSimpleActivator(SCRIPT_V3, "RTX V3")
-    local activatorV4 = makeSimpleActivator(SCRIPT_V4, "RTX V4")
-    local activatorV5 = makeSimpleActivator(SCRIPT_V5, "RTX V5")
-    local activatorFuture = makeSimpleActivator(SCRIPT_FUTURE, "Future")
-    local activatorVoxel = makeSimpleActivator(SCRIPT_VOXEL, "Voxel")
+    local aV1  = makeActivator(SCRIPT_V1, "V1")
+    local aV2  = makeActivator(SCRIPT_V2, "V2")
+    local aV3  = makeActivator(SCRIPT_V3, "V3")
+    local aV4  = makeActivator(SCRIPT_V4, "V4")
+    local aV5  = makeActivator(SCRIPT_V5, "V5")
+    local aFut = makeActivator(SCRIPT_FUTURE, "Future")
+    local aVox = makeActivator(SCRIPT_VOXEL, "Voxel")
 
+    -- ========== UPSCALING ==========
     local upActive = false
     local upShutdowns = {}
-
     local function startUpscaling()
         if upActive then return end
         upActive = true
         upShutdowns = {}
         local prevShut = _G.RTXLightingShutdown
         for _, src in ipairs({SCRIPT_V4_OLD, SCRIPT_V15_OLD}) do
-            local fn = loadstring(src)
-            if fn then
-                local ok, err = pcall(fn)
-                if not ok then warn("[Upscaling] " .. tostring(err)) end
+            local ok, fn = pcall(function() return loadstring(src) end)
+            if ok and fn then
+                local ok2 = pcall(fn)
+                if not ok2 then warn("[Upscaling] erro ao carregar") end
                 local thisShut = _G.RTXLightingShutdown
                 _G.RTXLightingShutdown = prevShut
                 if thisShut and thisShut ~= prevShut then table.insert(upShutdowns, thisShut) end
             end
         end
     end
-
     local function stopUpscaling()
         if not upActive then return end
         upActive = false
@@ -6432,52 +6443,49 @@ end
         restoreBase(keep)
     end
 
-    tabContainers[13].CanvasSize = UDim2.new(0, 0, 0, 720)
-
-    local shaderStates = {}
+    -- ========== TOGGLES ==========
     local shaderRefs = {}
-    local function makeShaderToggle(label, y, onToggle)
-        local bg, knob, btn = createToggle(label, tabContainers[13], y)
-        shaderStates[label] = false
+    local function makeShaderToggle(label, y, cb)
+        local bg, knob, btn = createToggle(label, tab, y)
+        local state = false
         btn.MouseButton1Click:Connect(function()
-            shaderStates[label] = not shaderStates[label]
-            updateToggle(bg, knob, shaderStates[label])
-            pcall(onToggle, shaderStates[label])
+            state = not state
+            updateToggle(bg, knob, state)
+            pcall(cb, state)
         end)
-        local ref = { set = function(v)
-            shaderStates[label] = v
-            updateToggle(bg, knob, v)
-            pcall(onToggle, v)
-        end, get = function() return shaderStates[label] end }
+        local ref = {
+            set = function(v) state = v; updateToggle(bg, knob, v); pcall(cb, v) end,
+            get = function() return state end
+        }
         table.insert(shaderRefs, ref)
         return ref
     end
 
-    makeShaderToggle("New Upscaling", 0, function(s) if s then startUpscaling() else stopUpscaling() end end)
-    makeShaderToggle("Gráfico Future", 48, function(s) if s then activatorFuture.start() else activatorFuture.stop() end end)
-    makeShaderToggle("Gráfico Voxel", 96, function(s) if s then activatorVoxel.start() else activatorVoxel.stop() end end)
-    makeShaderToggle("RTX V1 Emissive", 144, function(s) if s then activatorV1.start() else activatorV1.stop() end end)
-    makeShaderToggle("RTX V2 Smart", 192, function(s) if s then activatorV2.start() else activatorV2.stop() end end)
-    makeShaderToggle("RTX V3 Cinematic", 240, function(s) if s then activatorV3.start() else activatorV3.stop() end end)
-    makeShaderToggle("RTX V4 Energy", 288, function(s) if s then activatorV4.start() else activatorV4.stop() end end)
-    makeShaderToggle("RTX V5 Adaptive", 336, function(s) if s then activatorV5.start() else activatorV5.stop() end end)
+    makeShaderToggle("New Upscaling", 0,    function(s) if s then startUpscaling() else stopUpscaling() end end)
+    makeShaderToggle("Gráfico Future", 48,  function(s) if s then aFut.start() else aFut.stop() end end)
+    makeShaderToggle("Gráfico Voxel", 96,   function(s) if s then aVox.start() else aVox.stop() end end)
+    makeShaderToggle("RTX V1 Emissive", 144, function(s) if s then aV1.start() else aV1.stop() end end)
+    makeShaderToggle("RTX V2 Smart", 192,   function(s) if s then aV2.start() else aV2.stop() end end)
+    makeShaderToggle("RTX V3 Cinematic", 240, function(s) if s then aV3.start() else aV3.stop() end end)
+    makeShaderToggle("RTX V4 Energy", 288,  function(s) if s then aV4.start() else aV4.stop() end end)
+    makeShaderToggle("RTX V5 Adaptive", 336, function(s) if s then aV5.start() else aV5.stop() end end)
 
-    -- ==================== AJUSTES ====================
-    local adjustmentRefs = {}
+    -- ========== AJUSTES ==========
+    local adjRefs = {}
     local function makeAdjustment(name, y, default, minV, maxV, step, onChange)
         local frame = Instance.new("Frame")
         frame.Size = UDim2.new(1, 0, 0, 44)
         frame.Position = UDim2.new(0, 0, 0, y)
         frame.BackgroundColor3 = C.surface
         frame.BorderSizePixel = 0
-        frame.Parent = tabContainers[13]
+        frame.Parent = tab
         Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 20)
         local s = Instance.new("UIStroke", frame); s.Color = C.primary; s.Transparency = 0.7
 
         local value = default
 
         local label = Instance.new("TextLabel")
-        label.Size = UDim2.new(0, 150, 1, 0); label.Position = UDim2.new(0, 15, 0, 0)
+        label.Size = UDim2.new(0, 160, 1, 0); label.Position = UDim2.new(0, 15, 0, 0)
         label.BackgroundTransparency = 1
         label.Text = name .. ": " .. string.format("%.2f", value)
         label.TextColor3 = C.text; label.TextSize = 12; label.Font = Enum.Font.GothamMedium
@@ -6510,33 +6518,35 @@ end
         minus.MouseButton1Click:Connect(function() value = math.max(minV, value - step); update() end)
         plus.MouseButton1Click:Connect(function() value = math.min(maxV, value + step); update() end)
 
-        local ref = { set = function(v) value = math.clamp(v, minV, maxV); update() end,
-                      get = function() return value end,
-                      reset = function() value = default; update() end }
-        table.insert(adjustmentRefs, ref)
+        local ref = {
+            set = function(v) value = math.clamp(v, minV, maxV); update() end,
+            get = function() return value end,
+            reset = function() value = default; update() end
+        }
+        table.insert(adjRefs, ref)
         return ref
     end
 
     local function applyBloom(v)
-        for _, i in ipairs(Lighting:GetChildren()) do
+        for _, i in ipairs(L:GetChildren()) do
             if i:IsA("BloomEffect") then i.Intensity = v end
         end
     end
     local function applyReflection(v)
-        pcall(function() Lighting.EnvironmentSpecularScale = v end)
+        pcall(function() L.EnvironmentSpecularScale = v end)
     end
     local function applyAtmosphere(v)
-        for _, i in ipairs(Lighting:GetChildren()) do
+        for _, i in ipairs(L:GetChildren()) do
             if i:IsA("Atmosphere") then i.Density = v end
         end
     end
     local function applySunRays(v)
-        for _, i in ipairs(Lighting:GetChildren()) do
+        for _, i in ipairs(L:GetChildren()) do
             if i:IsA("SunRaysEffect") then i.Intensity = v end
         end
     end
     local function applyExposure(v)
-        pcall(function() Lighting.ExposureCompensation = v end)
+        pcall(function() L.ExposureCompensation = v end)
     end
 
     makeAdjustment("Bloom", 384, 0.35, 0, 3, 0.05, applyBloom)
@@ -6545,7 +6555,7 @@ end
     makeAdjustment("SunRays", 528, 0.2, 0, 1, 0.05, applySunRays)
     makeAdjustment("Exposição", 576, 0, -2, 2, 0.1, applyExposure)
 
-    -- ==================== RESET ====================
+    -- ========== RESET ==========
     local resetBtn = Instance.new("TextButton")
     resetBtn.Size = UDim2.new(1, 0, 0, 44)
     resetBtn.Position = UDim2.new(0, 0, 0, 624)
@@ -6554,7 +6564,7 @@ end
     resetBtn.TextColor3 = Color3.fromRGB(255, 180, 150)
     resetBtn.TextSize = 12
     resetBtn.Font = Enum.Font.GothamBold
-    resetBtn.Parent = tabContainers[13]
+    resetBtn.Parent = tab
     Instance.new("UICorner", resetBtn).CornerRadius = UDim.new(0, 20)
     local rbs = Instance.new("UIStroke", resetBtn)
     rbs.Color = Color3.fromRGB(180, 70, 40); rbs.Thickness = 1.5
@@ -6563,22 +6573,21 @@ end
         for _, ref in ipairs(shaderRefs) do
             if ref.get() then ref.set(false) end
         end
-        for _, ref in ipairs(adjustmentRefs) do
+        for _, ref in ipairs(adjRefs) do
             ref.reset()
         end
         pcall(function()
-            Lighting.GlobalShadows = true
-            Lighting.ExposureCompensation = 0
-            Lighting.Brightness = 2
-            Lighting.EnvironmentDiffuseScale = 1
-            Lighting.EnvironmentSpecularScale = 1
-            Lighting.Ambient = Color3.fromRGB(70, 70, 80)
-            Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 145)
+            L.GlobalShadows = true
+            L.ExposureCompensation = 0
+            L.Brightness = 2
+            L.EnvironmentDiffuseScale = 1
+            L.EnvironmentSpecularScale = 1
+            L.Ambient = Color3.fromRGB(70, 70, 80)
+            L.OutdoorAmbient = Color3.fromRGB(128, 128, 145)
         end)
         Notify("Shaders resetados!")
-        print("[Reset] Sistema de Shaders restaurado.")
     end)
 
-    print("[Aba Shaders] Carregada - 8 toggles + 5 ajustes + reset.")
-end
+    print("[Shaders] Aba 13 carregada - 8 toggles + 5 ajustes + reset.")
+end)
 --========== FIM DA ABA 13 ==============--
