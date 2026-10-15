@@ -1340,18 +1340,50 @@ FBtn.MouseButton1Click:Connect(function()
     NERO.Fly = not NERO.Fly; updateToggle(FTog, FKnob, NERO.Fly)
     if NERO.Fly then task.spawn(function() pcall(loadstring(game:HttpGet("https://pastebin.com/raw/hbp8FPaX"))()) end) end 
 end)
+-- ==================== BOTÃO MINIMIZAR ====================
+local NFContainer = Instance.new("Frame")
+NFContainer.Size = UDim2.new(0, 50, 0, 50)
+NFContainer.Position = UDim2.new(0, 15, 0, 75)  
+NFContainer.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+NFContainer.Visible = false
+NFContainer.Parent = Gui
+Instance.new("UICorner", NFContainer).CornerRadius = UDim.new(0, 25)
 
--- Função de arrastar (agora aceita objeto de input separado)
-local function makeSmoothDraggable(obj, inputObj)
-    inputObj = inputObj or obj
+local NFStroke = Instance.new("UIStroke", NFContainer)
+NFStroke.Color = C.primary; NFStroke.Thickness = 1.2  -- Borda mais fina
+NFStroke.Transparency = 0  -- Sem transparência (cor mais forte)
+TS:Create(NFStroke, TweenInfoPulse, {Transparency = 0.3}):Play()
+
+local NFBtn = Instance.new("TextButton")
+NFBtn.Size = UDim2.new(1,0,1,0)
+NFBtn.BackgroundTransparency = 1
+NFBtn.Text = "N"
+NFBtn.TextColor3 = C.primary
+NFBtn.TextSize = 20
+NFBtn.Font = Enum.Font.GothamBold
+NFBtn.Parent = NFContainer
+
+CloseBtn.MouseButton1Click:Connect(function()
+    Main.Visible = false
+    NFContainer.Visible = true
+end)
+
+NFBtn.MouseButton1Click:Connect(function()
+    Main.Visible = true
+    NFContainer.Visible = false
+    Main.Position = UDim2.new(0.5, 0, 0.5, 0)  
+end)
+
+-- Função de arrastar
+local function makeSmoothDraggable(obj)
     local dragging, dragInput, dragStart, startPos
-    inputObj.InputBegan:Connect(function(input)
+    obj.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging, dragStart, startPos = true, input.Position, obj.Position
             input.Changed:Connect(function() if input.UserInputState == Enum.UserInputState.End then dragging = false end end)
         end
     end)
-    inputObj.InputChanged:Connect(function(input)
+    obj.InputChanged:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then dragInput = input end
     end)
     table.insert(NERO.Connections, UIS.InputChanged:Connect(function(input)
@@ -1363,7 +1395,7 @@ local function makeSmoothDraggable(obj, inputObj)
 end
 
 makeSmoothDraggable(Main)
-makeSmoothDraggable(NFContainer, NFBtn)
+makeSmoothDraggable(NFContainer)
 
 -- MÓDULO BOTÃO VIRTUAL MOBILE (E)
 local ScreenGui = targetParent:FindFirstChild("NERO_HTML")
