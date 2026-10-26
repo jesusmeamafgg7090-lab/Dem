@@ -5861,8 +5861,7 @@ task.spawn(function()
         end
     end)
 end)
-
--- ========== ABA 13: SHADERS (SHADERZONE V4.3 ORIGINAL) ==============--
+-- ========== ABA 13: SHADERS (SHADERZONE V4.3 INTEGRADO) ==============--
 task.spawn(function()
     task.wait(0.3)
 
@@ -5878,12 +5877,14 @@ task.spawn(function()
     local Workspace = game:GetService("Workspace")
     local TweenService = game:GetService("TweenService")
     local Players = game:GetService("Players")
+    local LP = Players.LocalPlayer
 
-    tab.CanvasSize = UDim2.new(0, 0, 0, 360)
+    tab.CanvasSize = UDim2.new(0, 0, 0, 520)
 
-    -- ==================== TEMA LARANJA / NERO ====================
+    -- ==================== TEMA LARANJA ====================
     local ORANGE = Color3.fromRGB(255, 138, 40)
     local ORANGE_DIM = Color3.fromRGB(160, 80, 20)
+    local BG = Color3.fromRGB(20, 15, 10)
     local BG_ITEM = Color3.fromRGB(28, 22, 15)
     local TXT = Color3.fromRGB(240, 220, 200)
     local TXT_DIM = Color3.fromRGB(140, 120, 100)
@@ -5908,21 +5909,349 @@ task.spawn(function()
         ColorShift_Bottom        = Lighting.ColorShift_Bottom,
     }
 
-    local tabList = Instance.new("ScrollingFrame")
-    tabList.Size = UDim2.new(1, -10, 1, -10)
-    tabList.Position = UDim2.new(0, 5, 0, 5)
-    tabList.BackgroundTransparency = 1
-    tabList.BorderSizePixel = 0
-    tabList.ScrollBarThickness = 2
-    tabList.ScrollBarImageColor3 = ORANGE_DIM
-    tabList.CanvasSize = UDim2.new(0, 0, 0, 0)
-    tabList.AutomaticCanvasSize = Enum.AutomaticSize.Y
-    tabList.ScrollingDirection = Enum.ScrollingDirection.Y
-    tabList.Parent = tab
+    -- Contêiner do Card de Páginas dentro da Aba 13
+    local CARD_SIZE_X = tab.AbsoluteSize.X > 0 and (tab.AbsoluteSize.X - 10) or 170
+    local CARD_SIZE_Y = 220
 
-    local layout = Instance.new("UIListLayout", tabList)
-    layout.SortOrder = Enum.SortOrder.LayoutOrder
-    layout.Padding = UDim.new(0, 4)
+    local pagesContainer = Instance.new("Frame")
+    pagesContainer.Size = UDim2.new(0, CARD_SIZE_X * 2, 0, CARD_SIZE_Y)
+    pagesContainer.Position = UDim2.new(0, 5, 0, 5)
+    pagesContainer.BackgroundTransparency = 1
+    pagesContainer.Parent = tab
+
+    local page1 = Instance.new("Frame")
+    page1.Size = UDim2.new(0, CARD_SIZE_X, 1, 0)
+    page1.Position = UDim2.new(0, 0, 0, 0)
+    page1.BackgroundTransparency = 1
+    page1.Parent = pagesContainer
+
+    local page2 = Instance.new("Frame")
+    page2.Size = UDim2.new(0, CARD_SIZE_X, 1, 0)
+    page2.Position = UDim2.new(0, CARD_SIZE_X, 0, 0)
+    page2.BackgroundTransparency = 1
+    page2.Parent = pagesContainer
+
+    local currentPage = 1
+    local d1, d2
+    local function goToPage(p)
+        if p == currentPage then return end
+        currentPage = p
+        TweenService:Create(pagesContainer, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0, -(p - 1) * CARD_SIZE_X, 0, 5)}):Play()
+        if d1 and d2 then
+            d1.Size = (p == 1) and UDim2.new(0, 8, 0, 3) or UDim2.new(0, 3, 0, 3)
+            d1.BackgroundColor3 = (p == 1) and ORANGE or ORANGE_DIM
+            d2.Size = (p == 2) and UDim2.new(0, 8, 0, 3) or UDim2.new(0, 3, 0, 3)
+            d2.BackgroundColor3 = (p == 2) and ORANGE or ORANGE_DIM
+        end
+    end
+
+    -- ========== HEADER PAGE 1 ==========
+    local header1 = Instance.new("Frame")
+    header1.Size = UDim2.new(1, -10, 0, 15)
+    header1.Position = UDim2.new(0, 5, 0, 0)
+    header1.BackgroundTransparency = 1
+    header1.Parent = page1
+
+    local brand1 = Instance.new("TextLabel")
+    brand1.Size = UDim2.new(0, 60, 1, 0)
+    brand1.Position = UDim2.new(0, 3, 0, 0)
+    brand1.Text = "● RTX"
+    brand1.TextColor3 = ORANGE
+    brand1.TextSize = 9
+    brand1.Font = Enum.Font.GothamBold
+    brand1.BackgroundTransparency = 1
+    brand1.TextXAlignment = Enum.TextXAlignment.Left
+    brand1.Parent = header1
+
+    local nextBtn = Instance.new("TextButton")
+    nextBtn.Size = UDim2.new(0, 12, 1, 0)
+    nextBtn.Position = UDim2.new(1, -12, 0, 0)
+    nextBtn.Text = "›"
+    nextBtn.TextColor3 = ORANGE
+    nextBtn.TextSize = 14
+    nextBtn.Font = Enum.Font.GothamBold
+    nextBtn.BackgroundTransparency = 1
+    nextBtn.Parent = header1
+    nextBtn.MouseButton1Click:Connect(function() goToPage(2) end)
+
+    -- ========== HEADER PAGE 2 ==========
+    local header2 = Instance.new("Frame")
+    header2.Size = UDim2.new(1, -10, 0, 15)
+    header2.Position = UDim2.new(0, 5, 0, 0)
+    header2.BackgroundTransparency = 1
+    header2.Parent = page2
+
+    local prevBtn = Instance.new("TextButton")
+    prevBtn.Size = UDim2.new(0, 12, 1, 0)
+    prevBtn.Position = UDim2.new(0, 0, 0, 0)
+    prevBtn.Text = "‹"
+    prevBtn.TextColor3 = ORANGE
+    prevBtn.TextSize = 14
+    prevBtn.Font = Enum.Font.GothamBold
+    prevBtn.BackgroundTransparency = 1
+    prevBtn.Parent = header2
+    prevBtn.MouseButton1Click:Connect(function() goToPage(1) end)
+
+    local brand2 = Instance.new("TextLabel")
+    brand2.Size = UDim2.new(0, 60, 1, 0)
+    brand2.Position = UDim2.new(0, 12, 0, 0)
+    brand2.Text = "● CFG"
+    brand2.TextColor3 = ORANGE
+    brand2.TextSize = 9
+    brand2.Font = Enum.Font.GothamBold
+    brand2.BackgroundTransparency = 1
+    brand2.TextXAlignment = Enum.TextXAlignment.Left
+    brand2.Parent = header2
+
+    -- ========== LISTA PAGE 1 ==========
+    local list1 = Instance.new("ScrollingFrame")
+    list1.Size = UDim2.new(1, -10, 1, -20)
+    list1.Position = UDim2.new(0, 5, 0, 18)
+    list1.BackgroundTransparency = 1
+    list1.BorderSizePixel = 0
+    list1.ScrollBarThickness = 2
+    list1.ScrollBarImageColor3 = ORANGE_DIM
+    list1.CanvasSize = UDim2.new(0, 0, 0, 0)
+    list1.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    list1.ScrollingDirection = Enum.ScrollingDirection.Y
+    list1.Parent = page1
+    local list1Layout = Instance.new("UIListLayout", list1)
+    list1Layout.SortOrder = Enum.SortOrder.LayoutOrder
+    list1Layout.Padding = UDim.new(0, 3)
+
+    -- ========== LISTA PAGE 2 ==========
+    local list2 = Instance.new("ScrollingFrame")
+    list2.Size = UDim2.new(1, -10, 1, -20)
+    list2.Position = UDim2.new(0, 5, 0, 18)
+    list2.BackgroundTransparency = 1
+    list2.BorderSizePixel = 0
+    list2.ScrollBarThickness = 2
+    list2.ScrollBarImageColor3 = ORANGE_DIM
+    list2.CanvasSize = UDim2.new(0, 0, 0, 0)
+    list2.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    list2.ScrollingDirection = Enum.ScrollingDirection.Y
+    list2.Parent = page2
+    local list2Layout = Instance.new("UIListLayout", list2)
+    list2Layout.SortOrder = Enum.SortOrder.LayoutOrder
+    list2Layout.Padding = UDim.new(0, 3)
+
+    -- ========== DOTS INDICADORES DE PÁGINA ==========
+    local dotsContainer = Instance.new("Frame")
+    dotsContainer.Size = UDim2.new(0, 30, 0, 5)
+    dotsContainer.Position = UDim2.new(0, 5, 0, 228)
+    dotsContainer.BackgroundTransparency = 1
+    dotsContainer.Parent = tab
+
+    d1 = Instance.new("Frame")
+    d1.Size = UDim2.new(0, 8, 0, 3)
+    d1.Position = UDim2.new(0, 0, 0, 1)
+    d1.BackgroundColor3 = ORANGE
+    d1.BorderSizePixel = 0
+    d1.Parent = dotsContainer
+    Instance.new("UICorner", d1).CornerRadius = UDim.new(0, 99)
+
+    d2 = Instance.new("Frame")
+    d2.Size = UDim2.new(0, 3, 0, 3)
+    d2.Position = UDim2.new(0, 12, 0, 1)
+    d2.BackgroundColor3 = ORANGE_DIM
+    d2.BorderSizePixel = 0
+    d2.Parent = dotsContainer
+    Instance.new("UICorner", d2).CornerRadius = UDim.new(0, 99)
+
+    -- ==================== TOGGLE / SLIDER HELPERS ====================
+    local toggleRefs = {}
+    local function createToggle(name, callback, isPage2)
+        local row = Instance.new("Frame")
+        row.Size = UDim2.new(1, 0, 0, 18)
+        row.BackgroundColor3 = BG_ITEM
+        row.BorderSizePixel = 0
+        row.Parent = isPage2 and list2 or list1
+        Instance.new("UICorner", row).CornerRadius = UDim.new(0, 6)
+        local stroke = Instance.new("UIStroke", row)
+        stroke.Color = BORDER_IDLE; stroke.Thickness = 1
+
+        local led = Instance.new("Frame")
+        led.Size = UDim2.new(0, 3, 0, 3)
+        led.Position = UDim2.new(0, 6, 0.5, -1.5)
+        led.BackgroundColor3 = Color3.fromRGB(60, 45, 35)
+        led.BorderSizePixel = 0
+        led.Parent = row
+        Instance.new("UICorner", led).CornerRadius = UDim.new(0, 99)
+
+        local lbl = Instance.new("TextLabel")
+        lbl.Size = UDim2.new(1, -40, 1, 0)
+        lbl.Position = UDim2.new(0, 13, 0, 0)
+        lbl.Text = name
+        lbl.TextColor3 = TXT_DIM
+        lbl.TextSize = 8
+        lbl.Font = Enum.Font.GothamMedium
+        lbl.BackgroundTransparency = 1
+        lbl.TextXAlignment = Enum.TextXAlignment.Left
+        lbl.TextTruncate = Enum.TextTruncate.AtEnd
+        lbl.Parent = row
+
+        local sw = Instance.new("Frame")
+        sw.Size = UDim2.new(0, 20, 0, 10)
+        sw.Position = UDim2.new(1, -26, 0.5, -5)
+        sw.BackgroundColor3 = Color3.fromRGB(30, 22, 15)
+        sw.BorderSizePixel = 0
+        sw.Parent = row
+        Instance.new("UICorner", sw).CornerRadius = UDim.new(0, 99)
+        local swStroke = Instance.new("UIStroke", sw)
+        swStroke.Color = BORDER_IDLE; swStroke.Thickness = 1
+
+        local knob = Instance.new("Frame")
+        knob.Size = UDim2.new(0, 6, 0, 6)
+        knob.Position = UDim2.new(0, 1, 0.5, -3)
+        knob.BackgroundColor3 = TXT_DIM
+        knob.BorderSizePixel = 0
+        knob.Parent = sw
+        Instance.new("UICorner", knob).CornerRadius = UDim.new(0, 99)
+
+        local btn = Instance.new("TextButton")
+        btn.Size = UDim2.new(1, 0, 1, 0)
+        btn.BackgroundTransparency = 1
+        btn.Text = ""
+        btn.Parent = row
+
+        local state = false
+        local function apply(newState)
+            state = newState
+            if state then
+                stroke.Color = ORANGE
+                led.BackgroundColor3 = ORANGE
+                lbl.TextColor3 = TXT
+                swStroke.Color = ORANGE
+                TweenService:Create(knob, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {Position = UDim2.new(0, 13, 0.5, -3), BackgroundColor3 = ORANGE}):Play()
+            else
+                stroke.Color = BORDER_IDLE
+                led.BackgroundColor3 = Color3.fromRGB(60, 45, 35)
+                lbl.TextColor3 = TXT_DIM
+                swStroke.Color = BORDER_IDLE
+                TweenService:Create(knob, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {Position = UDim2.new(0, 1, 0.5, -3), BackgroundColor3 = TXT_DIM}):Play()
+            end
+            pcall(callback, state)
+        end
+
+        btn.MouseButton1Click:Connect(function() apply(not state) end)
+
+        local ref = { set = apply, get = function() return state end }
+        table.insert(toggleRefs, ref)
+        return ref
+    end
+
+    local adjustmentRefs = {}
+    local function createSlider(name, default, minV, maxV, step, onChange)
+        local row = Instance.new("Frame")
+        row.Size = UDim2.new(1, 0, 0, 18)
+        row.BackgroundColor3 = BG_ITEM
+        row.BorderSizePixel = 0
+        row.Parent = list2
+        Instance.new("UICorner", row).CornerRadius = UDim.new(0, 6)
+        local rowStroke = Instance.new("UIStroke", row)
+        rowStroke.Color = BORDER_IDLE; rowStroke.Thickness = 1
+
+        local nameLbl = Instance.new("TextLabel")
+        nameLbl.Size = UDim2.new(0, 38, 1, 0)
+        nameLbl.Position = UDim2.new(0, 5, 0, 0)
+        nameLbl.Text = name
+        nameLbl.TextColor3 = TXT_DIM
+        nameLbl.TextSize = 7
+        nameLbl.Font = Enum.Font.GothamBold
+        nameLbl.BackgroundTransparency = 1
+        nameLbl.TextXAlignment = Enum.TextXAlignment.Left
+        nameLbl.Parent = row
+
+        local valLbl = Instance.new("TextLabel")
+        valLbl.Size = UDim2.new(0, 26, 1, 0)
+        valLbl.Position = UDim2.new(1, -28, 0, 0)
+        valLbl.Text = string.format("%.2f", default)
+        valLbl.TextColor3 = ORANGE
+        valLbl.TextSize = 7
+        valLbl.Font = Enum.Font.GothamBold
+        valLbl.BackgroundTransparency = 1
+        valLbl.TextXAlignment = Enum.TextXAlignment.Right
+        valLbl.Parent = row
+
+        local slider = Instance.new("Frame")
+        slider.Size = UDim2.new(1, -75, 0, 2)
+        slider.Position = UDim2.new(0, 45, 0.5, -1)
+        slider.BackgroundColor3 = Color3.fromRGB(60, 45, 35)
+        slider.BorderSizePixel = 0
+        slider.Parent = row
+        Instance.new("UICorner", slider).CornerRadius = UDim.new(0, 99)
+
+        local fill = Instance.new("Frame")
+        fill.Size = UDim2.new(0, 0, 1, 0)
+        fill.BackgroundColor3 = ORANGE
+        fill.BorderSizePixel = 0
+        fill.Parent = slider
+        Instance.new("UICorner", fill).CornerRadius = UDim.new(0, 99)
+
+        local knob = Instance.new("Frame")
+        knob.Size = UDim2.new(0, 7, 0, 7)
+        knob.Position = UDim2.new(0, 0, 0.5, -3.5)
+        knob.BackgroundColor3 = ORANGE
+        knob.BorderSizePixel = 0
+        knob.Parent = slider
+        Instance.new("UICorner", knob).CornerRadius = UDim.new(0, 99)
+
+        local hitbox = Instance.new("TextButton")
+        hitbox.Size = UDim2.new(1, 0, 1, 14)
+        hitbox.Position = UDim2.new(0, 0, 0.5, -7)
+        hitbox.BackgroundTransparency = 1
+        hitbox.Text = ""
+        hitbox.Parent = slider
+
+        local value = default
+        local function render()
+            local pct = (value - minV) / (maxV - minV)
+            pct = math.clamp(pct, 0, 1)
+            fill.Size = UDim2.new(pct, 0, 1, 0)
+            knob.Position = UDim2.new(pct, 0, 0.5, -3.5)
+            valLbl.Text = string.format("%.2f", value)
+        end
+
+        local function setFromX(x)
+            local absPos = slider.AbsolutePosition
+            local absSize = slider.AbsoluteSize
+            if absSize.X <= 0 then return end
+            local pct = math.clamp((x - absPos.X) / absSize.X, 0, 1)
+            local nv = minV + pct * (maxV - minV)
+            nv = math.floor(nv / step + 0.5) * step
+            value = math.clamp(nv, minV, maxV)
+            render()
+            pcall(onChange, value)
+        end
+
+        hitbox.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                setFromX(input.Position.X)
+                local moveConn, endConn
+                moveConn = UserInputService.InputChanged:Connect(function(inp)
+                    if inp.UserInputType == Enum.UserInputType.MouseMovement or inp.UserInputType == Enum.UserInputType.Touch then
+                        setFromX(inp.Position.X)
+                    end
+                end)
+                endConn = UserInputService.InputEnded:Connect(function(inp)
+                    if inp.UserInputType == Enum.UserInputType.MouseButton1 or inp.UserInputType == Enum.UserInputType.Touch then
+                        if moveConn then moveConn:Disconnect() end
+                        if endConn then endConn:Disconnect() end
+                    end
+                end)
+            end
+        end)
+
+        render()
+
+        local ref = {
+            set = function(v) value = math.clamp(v, minV, maxV); render(); pcall(onChange, value) end,
+            get = function() return value end,
+            reset = function() value = default; render(); pcall(onChange, value) end,
+        }
+        table.insert(adjustmentRefs, ref)
+        return ref
+    end
 
     -- ==================== SCRIPTS V1-V5 ====================
     local SCRIPT_V1 = [==[
@@ -6159,7 +6488,9 @@ task.spawn(function()
     local SCRIPT_FUTURE = [==[
     local Lighting = game:GetService("Lighting")
     pcall(function() Lighting.Technology = Enum.Technology.Future end)
-    Lighting.GlobalShadows = true Lighting.ShadowSoftness = 0.15 Lighting.Brightness = 2.5
+    pcall(function() Lighting.LightingStyle = Enum.LightingStyle.Realistic end)
+    pcall(function() Lighting.PrioritizeLightingQuality = true end)
+    Lighting.GlobalShadows = true Lighting.ShadowSoftness = 0.15 Lighting.Brightness = 2.5 Lighting.ExposureCompensation = 0
     Lighting.Ambient = Color3.fromRGB(70, 73, 82) Lighting.OutdoorAmbient = Color3.fromRGB(135, 143, 158)
     Lighting.EnvironmentDiffuseScale = 1 Lighting.EnvironmentSpecularScale = 1
     local atmosphere = Lighting:FindFirstChild("FutureAtmosphere") or Instance.new("Atmosphere", Lighting)
@@ -6178,7 +6509,7 @@ task.spawn(function()
     local SCRIPT_VOXEL = [==[
     local Lighting = game:GetService("Lighting")
     pcall(function() Lighting.Technology = Enum.Technology.Future end)
-    Lighting.GlobalShadows = true Lighting.ShadowSoftness = 0.15 Lighting.Brightness = 3
+    Lighting.GlobalShadows = true Lighting.ShadowSoftness = 0.15 Lighting.Brightness = 3 Lighting.ExposureCompensation = 0.15
     Lighting.Ambient = Color3.fromRGB(65, 61, 48) Lighting.OutdoorAmbient = Color3.fromRGB(115, 105, 80)
     Lighting.EnvironmentDiffuseScale = 1 Lighting.EnvironmentSpecularScale = 1
     local atmosphere = Lighting:FindFirstChild("Voxel_Atmosphere") or Instance.new("Atmosphere", Lighting)
@@ -6192,27 +6523,120 @@ task.spawn(function()
     end
     ]==]
 
-    -- ==================== RESTAURADOR ====================
+    local SCRIPT_V4_OLD = [==[
+    local Players=game:GetService("Players") local Lighting=game:GetService("Lighting") local RunService=game:GetService("RunService") local CollectionService=game:GetService("CollectionService") local Workspace=game:GetService("Workspace")
+    local player=Players.LocalPlayer if not player then return end
+    local CONFIG={Enabled=true,Quality="High",UseDepthOfField=false,UseDust=true,UseMetalSparkles=true,UseLocalLightHalos=false,UseTaggedLightShafts=true,SunExposureStrength=0.22,ShadeDarkening=0.16,ShadeCheckInterval=0.05,ExposureUpdateInterval=0.03,SunDustEnabled=true,SunDustRate=85,ShadeEnterThreshold=0.22,ShadeExitThreshold=0.68,ShadeConfirmSeconds=0.10,ShadeReleaseSeconds=0.06,ShadeBrightnessResponse=4.5,ShadeRecoveryResponse=3.0,ShadeMaxConfidence=0.78,ShadeMinSunElevation=0.04,MaxMetalSparkleParts=18,MetalScanInterval=1.5,LightScanInterval=1.5,LightShaftTag="RTXLightShaft",MetalTag="RTXMetal",Brightness=2.0,ExposureCompensation=0.05,Ambient=Color3.fromRGB(105,108,120),OutdoorAmbient=Color3.fromRGB(145,148,160),ColorSaturation=0.08,Contrast=0.12,BloomIntensity=0.28,BloomSize=28,BloomThreshold=1.05,SunRaysIntensity=0.10,AtmosphereDensity=0.24,AtmosphereHaze=1.25,AtmosphereGlare=0.16,SmoothTransitionSeconds=0.65}
+    local QUALITY={Low={sunDustRate=0,metalCount=4,shaftCount=4,shadeRays=3},Medium={sunDustRate=35,metalCount=8,shaftCount=8,shadeRays=5},High={sunDustRate=85,metalCount=18,shaftCount=14,shadeRays=7},Ultra={sunDustRate=140,metalCount=28,shaftCount=20,shadeRays=9}}
+    local quality=QUALITY[CONFIG.Quality] or QUALITY.High
+    local alive=true local connections={} local ownedInstances={} local metalEmitters={} local shaftRecords={} local lightHalos={}
+    local character=player.Character local rootPart
+    local shadeTimer=0 local exposureTimer=0 local metalTimer=0 local lightTimer=0 local isInShade=false
+    local baseExposure=CONFIG.ExposureCompensation
+    local function own(i) table.insert(ownedInstances,i) return i end
+    local function connect(s,cb) local c=s:Connect(cb) table.insert(connections,c) return c end
+    local function getOrCreate(cls,name,parent) local ex=parent:FindFirstChild(name) if ex and ex.ClassName==cls then return ex end if ex then ex:Destroy() end local o=Instance.new(cls) o.Name=name o.Parent=parent own(o) return o end
+    local function safeDestroy(o) if o and o.Parent then pcall(function() o:Destroy() end) end end
+    local atmosphere=getOrCreate("Atmosphere","RTX_Atmosphere",Lighting)
+    atmosphere.Color=Color3.fromRGB(205,218,255) atmosphere.Decay=Color3.fromRGB(105,116,145) atmosphere.Density=CONFIG.AtmosphereDensity atmosphere.Haze=CONFIG.AtmosphereHaze atmosphere.Glare=CONFIG.AtmosphereGlare atmosphere.Offset=0.05
+    local bloom=getOrCreate("BloomEffect","RTX_Bloom",Lighting) bloom.Intensity=CONFIG.BloomIntensity bloom.Size=CONFIG.BloomSize bloom.Threshold=CONFIG.BloomThreshold
+    local sunRays=getOrCreate("SunRaysEffect","RTX_SunRays",Lighting) sunRays.Intensity=CONFIG.SunRaysIntensity sunRays.Spread=0.78
+    local colorGrade=getOrCreate("ColorCorrectionEffect","RTX_ColorGrade",Lighting) colorGrade.Brightness=0 colorGrade.Contrast=CONFIG.Contrast colorGrade.Saturation=CONFIG.ColorSaturation colorGrade.TintColor=Color3.fromRGB(245,246,255)
+    pcall(function() Lighting.Technology=Enum.Technology.Future end)
+    Lighting.GlobalShadows=true Lighting.Brightness=CONFIG.Brightness Lighting.ExposureCompensation=CONFIG.ExposureCompensation Lighting.Ambient=CONFIG.Ambient Lighting.OutdoorAmbient=CONFIG.OutdoorAmbient Lighting.ShadowSoftness=0.22
+    local rayParams=RaycastParams.new() rayParams.FilterType=Enum.RaycastFilterType.Exclude rayParams.IgnoreWater=true
+    local function updateRayFilter() local ex={} if character then table.insert(ex,character) end rayParams.FilterDescendantsInstances=ex end
+    local function getSunDirection() local d=Vector3.new(0,1,0) local ok=pcall(function() d=Lighting:GetSunDirection() end) if not ok or d.Magnitude<0.01 then return Vector3.new(0,1,0) end d=d.Unit if d.Y<0 then d=-d end return d end
+    local function castToSun(o) local s=getSunDirection() if s.Y<CONFIG.ShadeMinSunElevation then return nil end return Workspace:Raycast(o,s*420,rayParams) end
+    local function countVisibleSkyRays(o,n) local s=getSunDirection() if s.Y<CONFIG.ShadeMinSunElevation then return 1 end local v=0 local offs={Vector3.new(0,0,0),Vector3.new(0,1.25,0),Vector3.new(0.9,0.9,0),Vector3.new(-0.9,0.9,0),Vector3.new(0,0.9,0.9),Vector3.new(0,0.9,-0.9),Vector3.new(1.2,0,0.6),Vector3.new(-1.2,0,-0.6),Vector3.new(0.6,0,-1.2)} local sc=math.min(n,#offs) for i=1,sc do if not Workspace:Raycast(o+offs[i],s*420,rayParams) then v+=1 end end return v/math.max(1,sc) end
+    local dustEmitters={} local dustCellSize=52 local dustGridRadius=2
+    if CONFIG.SunDustEnabled and quality.sunDustRate>0 then
+    local folder=own(Instance.new("Folder")) folder.Name="RTX_WorldSunDust" folder.Parent=Workspace
+    for gx=-dustGridRadius,dustGridRadius do for gz=-dustGridRadius,dustGridRadius do
+    local a=Instance.new("Part") a.Size=Vector3.new(1,1,1) a.Transparency=1 a.Anchored=true a.CanCollide=false a.CanTouch=false a.CanQuery=false a.CastShadow=false a.Parent=folder
+    local att=Instance.new("Attachment") att.Parent=a
+    local e=Instance.new("ParticleEmitter") e.Texture="rbxasset://textures/particles/sparkles_main.dds" e.Enabled=false e.Rate=math.floor(quality.sunDustRate*0.7) e.Lifetime=NumberRange.new(1.8,3.4) e.Speed=NumberRange.new(0.12,0.65) e.SpreadAngle=Vector2.new(180,180) e.Acceleration=Vector3.new(0,0.035,0) e.Drag=0.35 e.LightEmission=1 e.LightInfluence=0 e.Shape=Enum.ParticleEmitterShape.Box e.ShapeStyle=Enum.ParticleEmitterShapeStyle.Volume e.Size=NumberSequence.new({NumberSequenceKeypoint.new(0,0.018),NumberSequenceKeypoint.new(0.22,0.06),NumberSequenceKeypoint.new(0.68,0.035),NumberSequenceKeypoint.new(1,0)}) e.Transparency=NumberSequence.new({NumberSequenceKeypoint.new(0,0.12),NumberSequenceKeypoint.new(0.62,0.32),NumberSequenceKeypoint.new(1,1)}) e.Color=ColorSequence.new(Color3.fromRGB(255,249,224),Color3.fromRGB(255,221,155)) e.Parent=att
+    table.insert(dustEmitters,{anchor=a,emitter=e,gx=gx,gz=gz})
+    end end
+    end
+    local function updateDustGrid() local cam=Workspace.CurrentCamera if not cam or #dustEmitters==0 then return end local cx=math.floor(cam.CFrame.Position.X/dustCellSize) local cz=math.floor(cam.CFrame.Position.Z/dustCellSize) for _,cell in ipairs(dustEmitters) do local wx=(cx+cell.gx)*dustCellSize+dustCellSize*0.5 local wz=(cz+cell.gz)*dustCellSize+dustCellSize*0.5 local h=((cell.gx*17+cell.gz*29)%5)*5 cell.anchor.Position=Vector3.new(wx,cam.CFrame.Position.Y+h,wz) end end
+    local function setWorldDustEnabled(en) for _,c in ipairs(dustEmitters) do c.emitter.Enabled=en end end
+    local function isMetalLike(p) if not p or not p:IsA("BasePart") then return false end if CollectionService:HasTag(p,CONFIG.MetalTag) then return true end return p.Material==Enum.Material.Metal or p.Material==Enum.Material.DiamondPlate or p.Material==Enum.Material.CorrodedMetal end
+    local function makeMetalEmitter(p) if metalEmitters[p] or not p:IsDescendantOf(Workspace) then return end local a=Instance.new("Attachment") a.Parent=p local e=Instance.new("ParticleEmitter") e.Texture="rbxasset://textures/particles/sparkles_main.dds" e.Rate=0.45 e.Lifetime=NumberRange.new(0.25,0.65) e.Speed=NumberRange.new(0,0.08) e.SpreadAngle=Vector2.new(180,180) e.LightEmission=1 e.LightInfluence=0 e.Size=NumberSequence.new({NumberSequenceKeypoint.new(0,0.035),NumberSequenceKeypoint.new(0.35,0.10),NumberSequenceKeypoint.new(1,0)}) e.Transparency=NumberSequence.new({NumberSequenceKeypoint.new(0,0.05),NumberSequenceKeypoint.new(0.5,0.15),NumberSequenceKeypoint.new(1,1)}) e.Color=ColorSequence.new(Color3.fromRGB(255,244,205)) e.Parent=a metalEmitters[p]={attachment=a,emitter=e} end
+    local function scanMetal() if not CONFIG.UseMetalSparkles then return end local cam=Workspace.CurrentCamera if not cam then return end local cands={} for _,i in ipairs(CollectionService:GetTagged(CONFIG.MetalTag)) do if i:IsA("BasePart") then table.insert(cands,i) end end local sc=0 for _,i in ipairs(Workspace:GetDescendants()) do if i:IsA("BasePart") and i.Material==Enum.Material.Metal then table.insert(cands,i) sc+=1 if sc>=160 then break end end end local seen,near={},{} for _,p in ipairs(cands) do if not seen[p] and p:IsDescendantOf(Workspace) then seen[p]=true local d=(p.Position-cam.CFrame.Position).Magnitude if d<70 and isMetalLike(p) then table.insert(near,{part=p,distance=d}) end end end table.sort(near,function(a,b) return a.distance<b.distance end) local keep={} for i=1,math.min(#near,quality.metalCount,CONFIG.MaxMetalSparkleParts) do local p=near[i].part keep[p]=true makeMetalEmitter(p) end for p,r in pairs(metalEmitters) do if not keep[p] or not p:IsDescendantOf(Workspace) then safeDestroy(r.attachment) metalEmitters[p]=nil end end end
+    local function removeShaftRecord(src) local r=shaftRecords[src] if not r then return end safeDestroy(r.beam) safeDestroy(r.startAttachment) safeDestroy(r.endPart) shaftRecords[src]=nil end
+    local function makeShaft(src) if shaftRecords[src] or not src:IsA("BasePart") then return end local sa=Instance.new("Attachment") sa.Parent=src local ep=Instance.new("Part") ep.Size=Vector3.new(0.1,0.1,0.1) ep.Transparency=1 ep.Anchored=true ep.CanCollide=false ep.CanTouch=false ep.CanQuery=false ep.CastShadow=false ep.Parent=Workspace local ea=Instance.new("Attachment") ea.Parent=ep local b=Instance.new("Beam") b.Attachment0=sa b.Attachment1=ea b.FaceCamera=true b.LightEmission=0.7 b.LightInfluence=0 b.CurveSize0=0 b.CurveSize1=0 b.Segments=8 b.Color=ColorSequence.new(Color3.fromRGB(255,232,175)) b.Transparency=NumberSequence.new({NumberSequenceKeypoint.new(0,0.68),NumberSequenceKeypoint.new(0.4,0.82),NumberSequenceKeypoint.new(1,1)}) b.Parent=src shaftRecords[src]={beam=b,startAttachment=sa,endPart=ep,endAttachment=ea} end
+    local function refreshShafts() if not CONFIG.UseTaggedLightShafts then return end local all=CollectionService:GetTagged(CONFIG.LightShaftTag) local allowed={} local cam=Workspace.CurrentCamera for _,src in ipairs(all) do if src:IsA("BasePart") and src:IsDescendantOf(Workspace) then local d=cam and (src.Position-cam.CFrame.Position).Magnitude or 0 if d<180 and #allowed<quality.shaftCount then allowed[src]=true makeShaft(src) local r=shaftRecords[src] if r then local len=math.clamp(src:GetAttribute("RTXShaftLength") or 45,8,120) r.endPart.CFrame=CFrame.new(src.Position+src.CFrame.LookVector*len) local w=math.clamp(src:GetAttribute("RTXShaftWidth") or 5,0.5,24) r.beam.Width0=math.max(0.08,w*0.04) r.beam.Width1=w end end end end for src in pairs(shaftRecords) do if not allowed[src] or not src:IsDescendantOf(Workspace) then removeShaftRecord(src) end end end
+    local function scanLocalLights() if not CONFIG.UseLocalLightHalos then return end local cam=Workspace.CurrentCamera if not cam then return end local cands={} for _,i in ipairs(Workspace:GetDescendants()) do if i:IsA("PointLight") or i:IsA("SpotLight") or i:IsA("SurfaceLight") then local pp=i.Parent if pp and pp:IsA("BasePart") then local d=(pp.Position-cam.CFrame.Position).Magnitude if d<65 and i.Brightness>0 then table.insert(cands,{light=i,part=pp,dist=d}) end end end end table.sort(cands,function(a,b) return a.dist<b.dist end) local keep={} for i=1,math.min(#cands,10) do local it=cands[i] local l=it.light keep[l]=true if not lightHalos[l] then local g=Instance.new("BillboardGui") g.Size=UDim2.fromOffset(90,90) g.AlwaysOnTop=false g.LightInfluence=0 g.MaxDistance=70 g.Parent=it.part local im=Instance.new("ImageLabel") im.BackgroundTransparency=1 im.Size=UDim2.fromScale(1,1) im.Image="rbxasset://textures/particles/sparkles_main.dds" im.ImageTransparency=0.82 im.ImageColor3=l.Color im.Parent=g lightHalos[l]={gui=g,image=im} else lightHalos[l].image.ImageColor3=l.Color lightHalos[l].gui.Parent=it.part end end for l,r in pairs(lightHalos) do if not keep[l] or not l:IsDescendantOf(Workspace) then safeDestroy(r.gui) lightHalos[l]=nil end end end
+    local function onChar(c) character=c rootPart=c:FindFirstChild("HumanoidRootPart") or c:WaitForChild("HumanoidRootPart",8) updateRayFilter() end
+    if character then rootPart=character:FindFirstChild("HumanoidRootPart") updateRayFilter() end
+    connect(player.CharacterAdded,onChar) connect(player.CharacterRemoving,function() character=nil rootPart=nil updateRayFilter() end)
+    local function smoothExp(c,t,dt,r) local a=1-math.exp(-math.max(dt,0)/math.max(r,0.001)) return c+(t-c)*a end
+    local shadeCandidateTimer=0 local sunCandidateTimer=0 local filteredSunVisibility=1 local shadeConfidence=0 local sunDustVisible=false
+    local function updateShade(dt) if not rootPart or not rootPart:IsDescendantOf(Workspace) then isInShade=false shadeCandidateTimer=0 sunCandidateTimer=0 filteredSunVisibility=1 shadeConfidence=0 colorGrade.Brightness=smoothExp(colorGrade.Brightness,0,dt,CONFIG.ShadeRecoveryResponse) sunDustVisible=false setWorldDustEnabled(false) return end shadeTimer+=dt if shadeTimer<CONFIG.ShadeCheckInterval then return end local elapsed=shadeTimer shadeTimer=0 local s=getSunDirection() local sunAbove=s.Y>=CONFIG.ShadeMinSunElevation local o=rootPart.Position+Vector3.new(0,2.6,0) if not sunAbove then isInShade=false shadeCandidateTimer=0 sunCandidateTimer=0 shadeConfidence=0 filteredSunVisibility=1 else local vis=countVisibleSkyRays(o,quality.shadeRays) filteredSunVisibility=smoothExp(filteredSunVisibility,vis,elapsed,0.32) local blocked=castToSun(o)~=nil local raw=math.clamp((CONFIG.ShadeExitThreshold-filteredSunVisibility)/math.max(0.01,CONFIG.ShadeExitThreshold-CONFIG.ShadeEnterThreshold),0,1) if blocked then raw=math.max(raw,0.55) else raw=raw*0.45 end shadeConfidence=smoothExp(shadeConfidence,raw,elapsed,0.42) local wantsShade=blocked and filteredSunVisibility<=CONFIG.ShadeEnterThreshold and shadeConfidence>=CONFIG.ShadeMaxConfidence local wantsSun=(not blocked) or filteredSunVisibility>=CONFIG.ShadeExitThreshold or shadeConfidence<0.28 if not isInShade then sunCandidateTimer=0 if wantsShade then shadeCandidateTimer+=elapsed if shadeCandidateTimer>=CONFIG.ShadeConfirmSeconds then isInShade=true shadeCandidateTimer=0 end else shadeCandidateTimer=0 end else sunCandidateTimer=0 if wantsSun then sunCandidateTimer+=elapsed if sunCandidateTimer>=CONFIG.ShadeReleaseSeconds then isInShade=false shadeCandidateTimer=0 end else sunCandidateTimer=0 end end end local tb=isInShade and -CONFIG.ShadeDarkening or 0 local resp=isInShade and CONFIG.ShadeBrightnessResponse or CONFIG.ShadeRecoveryResponse colorGrade.Brightness=smoothExp(colorGrade.Brightness,tb,elapsed,resp) local camera=Workspace.CurrentCamera local camDot=camera and camera.CFrame.LookVector:Dot(getSunDirection()) or 0 local inSun=(not isInShade) and sunAbove and filteredSunVisibility>=CONFIG.ShadeExitThreshold and camDot>-0.25 sunDustVisible=inSun setWorldDustEnabled(inSun and CONFIG.Enabled and CONFIG.SunDustEnabled) end
+    local function updateExposure(dt) exposureTimer+=dt if exposureTimer<CONFIG.ExposureUpdateInterval then return end local e=exposureTimer exposureTimer=0 local cam=Workspace.CurrentCamera if not cam then return end local s=getSunDirection() local dot=cam.CFrame.LookVector:Dot(s) local look=math.clamp((dot-0.15)/0.85,0,1) Lighting.ExposureCompensation=smoothExp(Lighting.ExposureCompensation,baseExposure-look*CONFIG.SunExposureStrength,e,0.75) sunRays.Intensity=smoothExp(sunRays.Intensity,CONFIG.SunRaysIntensity*(0.35+look*1.3),e,0.55) end
+    local function update(dt) if not alive or not CONFIG.Enabled then return end local cam=Workspace.CurrentCamera if cam then updateDustGrid() setWorldDustEnabled(CONFIG.Enabled and CONFIG.SunDustEnabled and sunDustVisible) end updateShade(dt) updateExposure(dt) metalTimer+=dt if metalTimer>=CONFIG.MetalScanInterval then metalTimer=0 scanMetal() end lightTimer+=dt if lightTimer>=CONFIG.LightScanInterval then lightTimer=0 refreshShafts() scanLocalLights() end end
+    connect(RunService.Heartbeat,update)
+    local controls=Instance.new("Folder") controls.Name="RTXLightingControls" controls.Parent=player own(controls)
+    local shutdown=Instance.new("BindableEvent") shutdown.Name="Shutdown" shutdown.Parent=controls
+    connect(shutdown.Event,function() alive=false for _,c in ipairs(connections) do pcall(function() c:Disconnect() end) end for src in pairs(shaftRecords) do removeShaftRecord(src) end for p,r in pairs(metalEmitters) do safeDestroy(r.attachment) metalEmitters[p]=nil end for l,r in pairs(lightHalos) do safeDestroy(r.gui) lightHalos[l]=nil end for _,i in ipairs(ownedInstances) do safeDestroy(i) end _G.RTXLightingShutdown=nil end)
+    _G.RTXLightingShutdown=function() if controls and controls.Parent then shutdown:Fire() end end
+    task.defer(function() if not alive then return end scanMetal() refreshShafts() scanLocalLights() end)
+    ]==]
+
+    -- ==================== RESTAURADOR TOTAL ====================
     local function restoreDevTechnology()
         for _, name in ipairs({
-            "FutureBloom", "FutureSunRays", "FutureAtmosphere",
-            "Voxel_Atmosphere", "Voxel_Bloom",
+            "FutureBloom", "FutureSunRays", "FutureColorCorrection", "FutureAtmosphere",
+            "Voxel_Atmosphere", "Voxel_Bloom", "Voxel_Color", "Voxel_Rays", "Voxel_Depth", "Voxel_SunLight",
             "RTX_CinematicBloom", "RTX_CinematicColor", "RTX_CinematicRays", "RTX_Bloom", "RTX_Atmosphere", "RTX_SunRays", "RTX_ColorGrade"
         }) do
             local obj = Lighting:FindFirstChild(name)
             if obj then pcall(function() obj:Destroy() end) end
         end
-        pcall(function() Lighting.Technology = DEV_LIGHTING.Technology end)
+
+        local target = DEV_LIGHTING.Technology
+        local ok = pcall(function() Lighting.Technology = target end)
+        if not ok or Lighting.Technology ~= target then
+            pcall(function() Lighting.Technology = Enum.Technology.ShadowMap end)
+        end
+
         pcall(function()
-            Lighting.GlobalShadows = DEV_LIGHTING.GlobalShadows
-            Lighting.Brightness = DEV_LIGHTING.Brightness
-            Lighting.ExposureCompensation = DEV_LIGHTING.ExposureCompensation
-            Lighting.Ambient = DEV_LIGHTING.Ambient
-            Lighting.OutdoorAmbient = DEV_LIGHTING.OutdoorAmbient
+            Lighting.GlobalShadows            = DEV_LIGHTING.GlobalShadows
+            Lighting.Brightness               = DEV_LIGHTING.Brightness
+            Lighting.ExposureCompensation     = DEV_LIGHTING.ExposureCompensation
+            Lighting.Ambient                  = DEV_LIGHTING.Ambient
+            Lighting.OutdoorAmbient           = DEV_LIGHTING.OutdoorAmbient
+            Lighting.ClockTime                = DEV_LIGHTING.ClockTime
+            Lighting.ShadowSoftness           = DEV_LIGHTING.ShadowSoftness
+            Lighting.EnvironmentDiffuseScale  = DEV_LIGHTING.EnvironmentDiffuseScale
+            Lighting.EnvironmentSpecularScale = DEV_LIGHTING.EnvironmentSpecularScale
+            Lighting.FogEnd                   = DEV_LIGHTING.FogEnd
+            Lighting.FogStart                 = DEV_LIGHTING.FogStart
+            Lighting.FogColor                 = DEV_LIGHTING.FogColor
+            Lighting.ColorShift_Top           = DEV_LIGHTING.ColorShift_Top
+            Lighting.ColorShift_Bottom        = DEV_LIGHTING.ColorShift_Bottom
         end)
     end
 
-    local function makeActivator(scriptSrc)
+    -- ==================== ATIVADORES ====================
+    local function makeSimpleActivator(scriptSrc, warnName)
+        local cleanup = nil
+        return {
+            start = function()
+                if cleanup then return end
+                local fn = loadstring(scriptSrc)
+                if not fn then return end
+                local ok, result = pcall(fn)
+                if ok then cleanup = result end
+            end,
+            stop = function()
+                if cleanup then pcall(cleanup); cleanup = nil end
+            end
+        }
+    end
+
+    local function makeGraphicActivator(scriptSrc, warnName)
         local cleanup = nil
         return {
             start = function()
@@ -6229,122 +6653,398 @@ task.spawn(function()
         }
     end
 
-    local actV1 = makeActivator(SCRIPT_V1)
-    local actV2 = makeActivator(SCRIPT_V2)
-    local actV3 = makeActivator(SCRIPT_V3)
-    local actV4 = makeActivator(SCRIPT_V4)
-    local actV5 = makeActivator(SCRIPT_V5)
-    local actFuture = makeActivator(SCRIPT_FUTURE)
-    local actVoxel = makeActivator(SCRIPT_VOXEL)
+    local activatorV1 = makeSimpleActivator(SCRIPT_V1, "RTX V1")
+    local activatorV2 = makeSimpleActivator(SCRIPT_V2, "RTX V2")
+    local activatorV3 = makeSimpleActivator(SCRIPT_V3, "RTX V3")
+    local activatorV4 = makeSimpleActivator(SCRIPT_V4, "RTX V4")
+    local activatorV5 = makeSimpleActivator(SCRIPT_V5, "RTX V5")
+    local activatorFuture = makeGraphicActivator(SCRIPT_FUTURE, "Future")
+    local activatorVoxel  = makeGraphicActivator(SCRIPT_VOXEL,  "Voxel")
 
-    -- ==================== UI HELPERS (SEU DESIGN COMPACTO PADRÃO) ====================
-    local toggleRefs = {}
-    local function createToggle(name, callback)
-        local row = Instance.new("Frame")
-        row.Size = UDim2.new(1, 0, 0, 24)
-        row.BackgroundColor3 = BG_ITEM
-        row.BorderSizePixel = 0
-        row.Parent = tabList
-        Instance.new("UICorner", row).CornerRadius = UDim.new(0, 6)
-        local stroke = Instance.new("UIStroke", row)
-        stroke.Color = BORDER_IDLE stroke.Thickness = 1
+    -- ==================== UPSCALING ====================
+    local upActive = false
+    local upShutdowns = {}
 
-        local led = Instance.new("Frame")
-        led.Size = UDim2.new(0, 4, 0, 4)
-        led.Position = UDim2.new(0, 8, 0.5, -2)
-        led.BackgroundColor3 = Color3.fromRGB(60, 45, 35)
-        led.BorderSizePixel = 0
-        led.Parent = row
-        Instance.new("UICorner", led).CornerRadius = UDim.new(0, 99)
-
-        local lbl = Instance.new("TextLabel")
-        lbl.Size = UDim2.new(1, -50, 1, 0)
-        lbl.Position = UDim2.new(0, 18, 0, 0)
-        lbl.Text = name
-        lbl.TextColor3 = TXT_DIM
-        lbl.TextSize = 10
-        lbl.Font = Enum.Font.GothamMedium
-        lbl.BackgroundTransparency = 1
-        lbl.TextXAlignment = Enum.TextXAlignment.Left
-        lbl.Parent = row
-
-        local sw = Instance.new("Frame")
-        sw.Size = UDim2.new(0, 26, 0, 12)
-        sw.Position = UDim2.new(1, -32, 0.5, -6)
-        sw.BackgroundColor3 = Color3.fromRGB(30, 22, 15)
-        sw.BorderSizePixel = 0
-        sw.Parent = row
-        Instance.new("UICorner", sw).CornerRadius = UDim.new(0, 99)
-        local swStroke = Instance.new("UIStroke", sw)
-        swStroke.Color = BORDER_IDLE swStroke.Thickness = 1
-
-        local knob = Instance.new("Frame")
-        knob.Size = UDim2.new(0, 8, 0, 8)
-        knob.Position = UDim2.new(0, 2, 0.5, -4)
-        knob.BackgroundColor3 = TXT_DIM
-        knob.BorderSizePixel = 0
-        knob.Parent = sw
-        Instance.new("UICorner", knob).CornerRadius = UDim.new(0, 99)
-
-        local btn = Instance.new("TextButton")
-        btn.Size = UDim2.new(1, 0, 1, 0)
-        btn.BackgroundTransparency = 1
-        btn.Text = ""
-        btn.Parent = row
-
-        local state = false
-        local function apply(newState)
-            state = newState
-            if state then
-                stroke.Color = ORANGE
-                led.BackgroundColor3 = ORANGE
-                lbl.TextColor3 = TXT
-                swStroke.Color = ORANGE
-                TweenService:Create(knob, TweenInfo.new(0.2), {Position = UDim2.new(0, 16, 0.5, -4), BackgroundColor3 = ORANGE}):Play()
-            else
-                stroke.Color = BORDER_IDLE
-                led.BackgroundColor3 = Color3.fromRGB(60, 45, 35)
-                lbl.TextColor3 = TXT_DIM
-                swStroke.Color = BORDER_IDLE
-                TweenService:Create(knob, TweenInfo.new(0.2), {Position = UDim2.new(0, 2, 0.5, -4), BackgroundColor3 = TXT_DIM}):Play()
+    local function startUpscaling()
+        if upActive then return end
+        upActive = true
+        upShutdowns = {}
+        local prevShut = _G.RTXLightingShutdown
+        for _, src in ipairs({SCRIPT_V4_OLD}) do
+            local fn = loadstring(src)
+            if fn then
+                pcall(fn)
+                local thisShut = _G.RTXLightingShutdown
+                _G.RTXLightingShutdown = prevShut
+                if thisShut and thisShut ~= prevShut then table.insert(upShutdowns, thisShut) end
             end
-            pcall(callback, state)
         end
-
-        btn.MouseButton1Click:Connect(function() apply(not state) end)
-        table.insert(toggleRefs, { set = apply, get = function() return state end })
     end
 
-    -- ==================== ITENS DA ABA ====================
-    createToggle("Gráfico Future", function(s) if s then actFuture.start() else actFuture.stop() end end)
-    createToggle("Gráfico Voxel", function(s) if s then actVoxel.start() else actVoxel.stop() end end)
-    createToggle("RTX V1 Emissive", function(s) if s then actV1.start() else actV1.stop() end end)
-    createToggle("RTX V2 Smart", function(s) if s then actV2.start() else actV2.stop() end end)
-    createToggle("RTX V3 Cinematic", function(s) if s then actV3.start() else actV3.stop() end end)
-    createToggle("RTX V4 Energy", function(s) if s then actV4.start() else actV4.stop() end end)
-    createToggle("RTX V5 Adaptive", function(s) if s then actV5.start() else actV5.stop() end end)
+    local function stopUpscaling()
+        if not upActive then return end
+        upActive = false
+        for _, fn in ipairs(upShutdowns) do pcall(fn) end
+        upShutdowns = {}
+        _G.RTXLightingShutdown = nil
+    end
 
-    -- Botão Reset
+    -- ==================== REFLEXO CORRIGIDO ====================
+    local reflexoActive = false
+    local reflexoConns = {}
+    local reflexoMirrors = {}
+
+    local function startReflexoInfinito()
+        if reflexoActive then return end
+        reflexoActive = true
+
+        local function processLight(light)
+            if not light:IsA("PointLight") and not light:IsA("SpotLight") then return end
+            if reflexoMirrors[light] then return end
+
+            local mirrorPart = Instance.new("Part")
+            mirrorPart.Size = Vector3.new(0.1, 0.1, 0.1)
+            mirrorPart.Transparency = 1
+            mirrorPart.Anchored = true
+            mirrorPart.CanCollide = false
+            mirrorPart.CanTouch = false
+            mirrorPart.CanQuery = false
+            mirrorPart.CastShadow = false
+            mirrorPart.Name = "RTX_ReflexoMirror"
+            mirrorPart.Parent = Workspace
+
+            local mirrorLight = Instance.new("PointLight")
+            mirrorLight.Name = "RTX_ReflexoLight"
+            mirrorLight.Color = light.Color
+            mirrorLight.Brightness = math.min(light.Brightness, 2.5)
+            mirrorLight.Range = math.clamp(light.Range, 10, 20)
+            mirrorLight.Shadows = false
+            mirrorLight.Parent = mirrorPart
+
+            reflexoMirrors[light] = {part = mirrorPart, light = mirrorLight}
+
+            local throttle = 0
+            local conn = RunService.Heartbeat:Connect(function(dt)
+                if not reflexoActive then return end
+                local part = light.Parent
+                if not light.Parent or not part or not part:IsA("BasePart") or not light.Enabled or light.Brightness <= 0 then
+                    if mirrorLight then mirrorLight.Enabled = false end
+                    return
+                else
+                    if mirrorLight then mirrorLight.Enabled = true end
+                end
+
+                throttle += dt
+                if throttle < 0.08 then return end
+                throttle = 0
+
+                local cam = Workspace.CurrentCamera
+                if cam and (part.Position - cam.CFrame.Position).Magnitude > 60 then
+                    mirrorLight.Enabled = false
+                    return
+                end
+
+                local rayOrigin = part.Position
+                local rayDir = Vector3.new(0, -1, 0) * 80
+                local params = RaycastParams.new()
+                params.FilterType = Enum.RaycastFilterType.Exclude
+                params.FilterDescendantsInstances = {part, mirrorPart}
+                local hit = Workspace:Raycast(rayOrigin, rayDir, params)
+                local groundY = hit and hit.Position.Y or (part.Position.Y - 5)
+
+                mirrorPart.Position = Vector3.new(part.Position.X, groundY + 0.1, part.Position.Z)
+                mirrorLight.Color = light.Color
+                mirrorLight.Brightness = math.min(light.Brightness, 2.5)
+                mirrorLight.Range = math.clamp(light.Range, 10, 20)
+            end)
+            table.insert(reflexoConns, conn)
+        end
+
+        for _, obj in ipairs(Workspace:GetDescendants()) do
+            if obj:IsA("PointLight") or obj:IsA("SpotLight") then processLight(obj) end
+        end
+        table.insert(reflexoConns, Workspace.DescendantAdded:Connect(function(obj)
+            if obj:IsA("PointLight") or obj:IsA("SpotLight") then processLight(obj) end
+        end))
+    end
+
+    local function stopReflexoInfinito()
+        if not reflexoActive then return end
+        reflexoActive = false
+        for _, c in ipairs(reflexoConns) do pcall(function() c:Disconnect() end) end
+        reflexoConns = {}
+        for _, data in pairs(reflexoMirrors) do
+            pcall(function()
+                if data.part then data.part:Destroy() end
+            end)
+        end
+        reflexoMirrors = {}
+    end
+
+    local noAmbientActive = false
+    local ambientBackup = {}
+
+    local function startNoAmbient()
+        if noAmbientActive then return end
+        noAmbientActive = true
+        ambientBackup = {
+            Ambient = Lighting.Ambient,
+            OutdoorAmbient = Lighting.OutdoorAmbient,
+            Brightness = Lighting.Brightness,
+            EnvironmentDiffuseScale = Lighting.EnvironmentDiffuseScale,
+            EnvironmentSpecularScale = Lighting.EnvironmentSpecularScale,
+        }
+        pcall(function()
+            Lighting.Ambient = Color3.new(0,0,0)
+            Lighting.OutdoorAmbient = Color3.new(0,0,0)
+            Lighting.Brightness = 0
+            Lighting.EnvironmentDiffuseScale = 0
+            Lighting.EnvironmentSpecularScale = 0
+        end)
+        for _, obj in ipairs(Lighting:GetChildren()) do
+            if obj:IsA("Atmosphere") then obj.Density = 0 end
+        end
+    end
+
+    local function stopNoAmbient()
+        if not noAmbientActive then return end
+        noAmbientActive = false
+        pcall(function()
+            Lighting.Ambient = ambientBackup.Ambient
+            Lighting.OutdoorAmbient = ambientBackup.OutdoorAmbient
+            Lighting.Brightness = ambientBackup.Brightness
+            Lighting.EnvironmentDiffuseScale = ambientBackup.EnvironmentDiffuseScale
+            Lighting.EnvironmentSpecularScale = ambientBackup.EnvironmentSpecularScale
+        end)
+    end
+
+    -- ==================== RAY TRACING ====================
+    local smartShaderActive = false
+    local smartFolder = nil
+    local smartModifiedFloors = {}
+    local smartTrackedNeon = {}
+    local smartBodyShadow = nil
+    local smartConn = nil
+
+    local function startSmartRayTracing()
+        if smartShaderActive then return end
+        smartShaderActive = true
+
+        smartFolder = Workspace:FindFirstChild("SmartShaderFolder") or Instance.new("Folder", Workspace)
+        smartFolder.Name = "SmartShaderFolder"
+        smartFolder:ClearAllChildren()
+
+        smartModifiedFloors = {}
+        smartTrackedNeon = {}
+        smartBodyShadow = nil
+
+        local lastGlobalScan = 0
+        smartConn = RunService.RenderStepped:Connect(function()
+            if not smartShaderActive then return end
+
+            local char = LP.Character
+            if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+            local rootPos = char.HumanoidRootPart.Position
+
+            local currentTime = tick()
+            if currentTime - lastGlobalScan >= 0.3 then
+                lastGlobalScan = currentTime
+
+                for _, obj in ipairs(Workspace:GetDescendants()) do
+                    if obj:IsA("BasePart") and obj ~= char and obj.Transparency < 0.7 and obj.Anchored then
+                        local dist = (obj.Position - rootPos).Magnitude
+                        
+                        if dist < 55 then
+                            local isHorizontalFloor = obj.CFrame.UpVector:Dot(Vector3.new(0, 1, 0)) > 0.5 and obj.Size.Y <= 12
+                            local isSmoothMaterial = obj.Material == Enum.Material.SmoothPlastic or obj.Material == Enum.Material.Glass or obj.Material == Enum.Material.Ice or obj.Material == Enum.Material.Foil
+
+                            if isHorizontalFloor or isSmoothMaterial then
+                                if not smartModifiedFloors[obj] and obj.Material ~= Enum.Material.SmoothPlastic then
+                                    smartModifiedFloors[obj] = {Material = obj.Material, Reflectance = obj.Reflectance}
+                                end
+                                obj.Material = Enum.Material.SmoothPlastic
+                                obj.Reflectance = 0.08
+                            end
+
+                            local hasLight = false
+                            for _, d in ipairs(obj:GetDescendants()) do if d:IsA("Light") then hasLight = true break end end
+
+                            if (obj.Material == Enum.Material.Neon or hasLight) and obj.Size.Magnitude < 40 then
+                                if not smartTrackedNeon[obj] then
+                                    local clone = obj:Clone()
+                                    clone.Name = "SmartNeon_" .. obj.Name
+                                    clone.Anchored = true
+                                    clone.CanCollide = false
+                                    clone.CanQuery = false
+                                    clone.Transparency = 0.25
+                                    clone.Parent = smartFolder
+                                    for _, child in ipairs(clone:GetChildren()) do
+                                        if child:IsA("Script") or child:IsA("LocalScript") or child:IsA("Light") then child:Destroy() end
+                                    end
+                                    smartTrackedNeon[obj] = clone
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+
+            local floorRayParams = RaycastParams.new()
+            floorRayParams.FilterDescendantsInstances = {char, smartFolder}
+            floorRayParams.FilterType = Enum.RaycastFilterType.Exclude
+
+            local floorRay = Workspace:Raycast(rootPos + Vector3.new(0, 2, 0), Vector3.new(0, -35, 0), floorRayParams)
+            if not floorRay or not floorRay.Instance then return end
+            local currentFloorY = floorRay.Position.Y
+
+            if not smartBodyShadow or not smartBodyShadow.Parent then
+                smartBodyShadow = Instance.new("Model")
+                smartBodyShadow.Name = "SmartBodyShadow"
+                smartBodyShadow.Parent = smartFolder
+
+                for _, part in ipairs(char:GetChildren()) do
+                    if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+                        local shadowPart = part:Clone()
+                        shadowPart.Name = "ShadowPart_" .. part.Name
+                        shadowPart.Anchored = true
+                        shadowPart.CanCollide = false
+                        shadowPart.CanQuery = false
+                        shadowPart.Transparency = 0.52
+                        shadowPart.Color = Color3.fromRGB(12, 12, 18)
+                        shadowPart.Material = Enum.Material.SmoothPlastic
+                        shadowPart.Parent = smartBodyShadow
+                        for _, child in ipairs(shadowPart:GetChildren()) do if not child:IsA("SpecialMesh") then child:Destroy() end end
+                    end
+                end
+            else
+                for _, origPart in ipairs(char:GetChildren()) do
+                    if origPart:IsA("BasePart") then
+                        local shadowPart = smartBodyShadow:FindFirstChild("ShadowPart_" .. origPart.Name)
+                        if shadowPart then
+                            local cf = origPart.CFrame
+                            local relY = cf.Position.Y - currentFloorY
+                            local projectedPos = Vector3.new(cf.Position.X, currentFloorY - relY + 0.04, cf.Position.Z)
+                            local rx, ry, rz = cf:ToEulerAnglesXYZ()
+                            shadowPart.CFrame = CFrame.new(projectedPos) * CFrame.fromEulerAnglesXYZ(-rx, ry, -rz)
+                            shadowPart.Transparency = origPart.Transparency > 0.5 and 1 or 0.52
+                        end
+                    end
+                end
+            end
+
+            for original, clone in pairs(smartTrackedNeon) do
+                if original and original.Parent and clone and clone.Parent then
+                    local origPos = original.Position
+                    if (origPos - rootPos).Magnitude > 55 or original.Transparency >= 0.8 then
+                        clone:Destroy()
+                        smartTrackedNeon[original] = nil
+                    else
+                        local distToFloor = origPos.Y - currentFloorY
+                        clone.CFrame = CFrame.new(origPos.X, currentFloorY - distToFloor, origPos.Z) * original.CFrame.Rotation
+                        clone.Size = original.Size
+                        clone.Color = original.Color
+                        clone.Material = Enum.Material.Neon
+                    end
+                else
+                    if clone then clone:Destroy() end
+                    smartTrackedNeon[original] = nil
+                end
+            end
+        end)
+    end
+
+    local function stopSmartRayTracing()
+        if not smartShaderActive then return end
+        smartShaderActive = false
+
+        if smartConn then pcall(function() smartConn:Disconnect() end) smartConn = nil end
+        if smartBodyShadow then pcall(function() smartBodyShadow:Destroy() end) smartBodyShadow = nil end
+
+        for _, clone in pairs(smartTrackedNeon) do if clone then pcall(function() clone:Destroy() end) end end
+        smartTrackedNeon = {}
+
+        for part, data in pairs(smartModifiedFloors) do
+            if part and part.Parent then
+                pcall(function()
+                    part.Material = data.Material
+                    part.Reflectance = data.Reflectance
+                end)
+            end
+        end
+        smartModifiedFloors = {}
+
+        if smartFolder then pcall(function() smartFolder:Destroy() end) smartFolder = nil end
+    end
+
+    -- ==================== AJUSTES ====================
+    local adjValues = { Bloom = 0.35, Reflexo = 1.0, Atmosfera = 0.3, SunRays = 0.2, Exposicao = 0 }
+    local function applyAllAdjustments()
+        for _, i in ipairs(Lighting:GetChildren()) do
+            if i:IsA("BloomEffect") then i.Intensity = adjValues.Bloom end
+            if i:IsA("Atmosphere") then i.Density = adjValues.Atmosfera end
+            if i:IsA("SunRaysEffect") then i.Intensity = adjValues.SunRays end
+        end
+        pcall(function() 
+            Lighting.EnvironmentSpecularScale = adjValues.Reflexo 
+            Lighting.ExposureCompensation = adjValues.Exposicao
+        end)
+    end
+
+    Lighting.DescendantAdded:Connect(function(obj)
+        task.defer(function()
+            if obj:IsA("BloomEffect") then obj.Intensity = adjValues.Bloom end
+            if obj:IsA("Atmosphere") then obj.Density = adjValues.Atmosfera end
+            if obj:IsA("SunRaysEffect") then obj.Intensity = adjValues.SunRays end
+        end)
+    end)
+
+    local function makeAdjCb(k) return function(v) adjValues[k] = v; applyAllAdjustments() end end
+
+    createSlider("Bloom", adjValues.Bloom, 0, 3, 0.05, makeAdjCb("Bloom"))
+    createSlider("Reflexo", adjValues.Reflexo, 0, 1, 0.05, makeAdjCb("Reflexo"))
+    createSlider("Atmos", adjValues.Atmosfera, 0, 1, 0.05, makeAdjCb("Atmosfera"))
+    createSlider("Rays", adjValues.SunRays, 0, 1, 0.05, makeAdjCb("Rays"))
+    createSlider("Expo", adjValues.Exposicao, -2, 2, 0.1, makeAdjCb("Exposicao"))
+
+    -- ==================== TOGGLES (PÁGINA 1) ====================
+    createToggle("Upscaling", function(s) if s then startUpscaling() else stopUpscaling() end end)
+    createToggle("Future", function(s) if s then activatorFuture.start() else activatorFuture.stop() end end)
+    createToggle("Voxel", function(s) if s then activatorVoxel.start() else activatorVoxel.stop() end end)
+    createToggle("V1 Emissive", function(s) if s then activatorV1.start() else activatorV1.stop() end end)
+    createToggle("V2 Smart", function(s) if s then activatorV2.start() else activatorV2.stop() end end)
+    createToggle("V3 Cinematic", function(s) if s then activatorV3.start() else activatorV3.stop() end end)
+    createToggle("V4 Energy", function(s) if s then activatorV4.start() else activatorV4.stop() end end)
+    createToggle("V5 Adaptive", function(s) if s then activatorV5.start() else activatorV5.stop() end end)
+    createToggle("Reflexo", function(s) if s then startReflexoInfinito() else stopReflexoInfinito() end end)
+    createToggle("Sem Luz", function(s) if s then startNoAmbient() else stopNoAmbient() end end)
+
+    -- ==================== TOGGLE & RESET (PÁGINA 2) ====================
+    createToggle("Ray Tracing", function(s) if s then startSmartRayTracing() else stopSmartRayTracing() end end, true)
+
     local resetBtn = Instance.new("TextButton")
-    resetBtn.Size = UDim2.new(1, 0, 0, 26)
+    resetBtn.Size = UDim2.new(1, 0, 0, 18)
     resetBtn.BackgroundColor3 = Color3.fromRGB(70, 25, 18)
-    resetBtn.Text = "↻ RESET TUDO"
+    resetBtn.Text = "↻ RESET"
     resetBtn.TextColor3 = Color3.fromRGB(255, 176, 160)
-    resetBtn.TextSize = 10
+    resetBtn.TextSize = 8
     resetBtn.Font = Enum.Font.GothamBold
     resetBtn.AutoButtonColor = false
-    resetBtn.Parent = tabList
-    Instance.new("UICorner", resetBtn).CornerRadius = UDim.new(0, 6)
+    resetBtn.Parent = list2
+    Instance.new("UICorner", resetBtn).CornerRadius = UDim.new(0, 5)
     local rbs = Instance.new("UIStroke", resetBtn)
-    rbs.Color = Color3.fromRGB(180, 70, 50) rbs.Thickness = 1
+    rbs.Color = Color3.fromRGB(180, 70, 50); rbs.Thickness = 1
 
     resetBtn.MouseButton1Click:Connect(function()
         for _, ref in ipairs(toggleRefs) do
             if ref.get() then ref.set(false) end
         end
+        for _, ref in ipairs(adjustmentRefs) do
+            ref.reset()
+        end
         restoreDevTechnology()
+        print("[Reset] Sistema restaurado ao estado original do dev.")
     end)
 
-    print("[ShaderZone V4.3] Aba 13 carregada mantendo seu design original!")
+    print("[ShaderZone V4.3] Aba 13 carregada perfeitamente!")
 end)
 --========== FIM DA ABA 13 ==============--
