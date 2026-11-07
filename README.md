@@ -1815,69 +1815,31 @@ UIS.InputBegan:Connect(function(input, gpe)
     end
 end)
 
-            -- ==========================================================
--- 🎵 NERO MUSIC PLAYER v7 – BEAT SYNC EDITION (AJUSTADO)
+
+    -- ==========================================================
+-- 🎵 NERO MUSIC PLAYER v8.4 – BEAT SYNC + CATALOG ONLY
+-- Aba de pesquisa = 100% catálogo Roblox (igual MiniFixHub)
+-- Morph animation no ▲ (Player cresce, não abre janela flutuante)
 -- ==========================================================
 task.spawn(function()
+    -- ⚠️ musicList SÓ pra autoplay interno. NUNCA aparece na UI.
     local musicList = {
-        "94935794334796",
-        "79755157966318",
-        "82561126988856",
-        "91007045451630",
-        "70621522505799",
-        "118507373399694",
-        "127012181396114",
-        "80583573418108",
-        "76650356472656",
-        "100048144167699",
-        "91417201989636",
-        "88523902860927",
-        "100048144167699",
-        "106077539420914",
-        "95401969908951",
-        "78317236576153",
-        "110817176848617",
-        "140667339171815",
-        "140580823167015",
-        "140504265985079",
-        "9047104571",
-        "9047105584",
-        "9039770426",
-        "9047106878",
-        "9042666614",
-        "9046862941",
-        "9046865270",
-        "9046863235",
-        "9046864509",
-        "14145626111",
-        "120785124326826",
-        "102688248318930",
-        "90089940136467",
-        "16190782181",
-        "97830617915652",
-        "92585638502970",
-        "84959260429847",
-        "85408568949006",
-        "134763052215450",
-        "75793040119604",
-        "120912468681132",
-        "126576350082922",
-        "15689451063",
-        "110000768489573",
-        "139638751795258",
-        "96227064373517",
-        "133732492604303",
-        "96777016427873",
-        "138825474468793",
-        "140664302903953",
-        "137054360044519",
-        "92634372837784"
+        "94935794334796", "79755157966318", "82561126988856", "91007045451630",
+        "70621522505799", "118507373399694", "127012181396114", "80583573418108",
+        "76650356472656", "100048144167699", "91417201989636", "88523902860927",
+        "100048144167699", "106077539420914", "95401969908951", "78317236576153",
+        "110817176848617", "140667339171815", "140580823167015", "140504265985079",
+        "9047104571", "9047105584", "9039770426", "9047106878", "9042666614",
+        "9046862941", "9046865270", "9046863235", "9046864509", "14145626111",
+        "120785124326826", "102688248318930", "90089940136467", "16190782181",
+        "120912468681132", "126576350082922", "92634372837784"
     }
 
     local TweenService = game:GetService("TweenService")
     local RunService = game:GetService("RunService")
     local UserInputService = game:GetService("UserInputService")
     local MarketplaceService = game:GetService("MarketplaceService")
+    local AssetService = game:GetService("AssetService")
 
     local MusicGui = Instance.new("ScreenGui")
     MusicGui.Name = "NERO_MusicPlayer"
@@ -1886,24 +1848,129 @@ task.spawn(function()
     MusicGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     MusicGui.Enabled = false
 
-    -- Player Card (150x110)
+    -- Player Card (150x110) — morph para 300 quando abre busca
+    local COLLAPSED_H = 110
+    local EXPANDED_H  = 300
+
     local Player = Instance.new("Frame")
-    Player.Size = UDim2.new(0, 150, 0, 110)
+    Player.Size = UDim2.new(0, 150, 0, COLLAPSED_H)
     Player.Position = UDim2.new(0.5, -75, 0.5, -55)
     Player.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
     Player.BorderSizePixel = 0
-    Player.ClipsDescendants = false
+    Player.ClipsDescendants = true
     Player.Parent = MusicGui
 
-    local playerCorner = Instance.new("UICorner", Player)
-    playerCorner.CornerRadius = UDim.new(0, 12)
-
+    Instance.new("UICorner", Player).CornerRadius = UDim.new(0, 12)
     local playerStroke = Instance.new("UIStroke", Player)
     playerStroke.Color = Color3.fromRGB(255, 100, 0)
     playerStroke.Thickness = 1
-    playerStroke.Transparency = 0
 
-    -- Botão Superior (◆)
+    -- ==========================================================
+    -- DRAWER (agora: morph do próprio Player)
+    -- ==========================================================
+    local drawerContainer = Instance.new("CanvasGroup")
+    drawerContainer.Size = UDim2.new(1, 0, 0, 190)
+    -- Posicionado em Y=110 (exatamente onde o Player base termina) para não ter gap
+    drawerContainer.Position = UDim2.new(0, 0, 0, 110)
+    drawerContainer.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    drawerContainer.BorderSizePixel = 0
+    drawerContainer.GroupTransparency = 1
+    drawerContainer.Visible = false
+    drawerContainer.Parent = Player
+    drawerContainer.ClipsDescendants = true
+
+    Instance.new("UICorner", drawerContainer).CornerRadius = UDim.new(0, 12)
+    local drawerStroke = Instance.new("UIStroke", drawerContainer)
+    drawerStroke.Color = Color3.fromRGB(255, 100, 0)
+    drawerStroke.Thickness = 1
+
+    local drawerPad = Instance.new("UIPadding", drawerContainer)
+    drawerPad.PaddingTop = UDim.new(0, 6)
+    drawerPad.PaddingBottom = UDim.new(0, 6)
+    drawerPad.PaddingLeft = UDim.new(0, 6)
+    drawerPad.PaddingRight = UDim.new(0, 6)
+
+    -- Search Input
+    local searchBox = Instance.new("TextBox")
+    searchBox.Size = UDim2.new(1, 0, 0, 22)
+    searchBox.Position = UDim2.new(0, 0, 0, 0)
+    searchBox.BackgroundColor3 = Color3.fromRGB(13, 13, 14)
+    searchBox.BorderSizePixel = 0
+    searchBox.PlaceholderText = "Pesquisar..."
+    searchBox.PlaceholderColor3 = Color3.fromRGB(102, 102, 112)
+    searchBox.Text = ""
+    searchBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+    searchBox.TextSize = 9
+    searchBox.Font = Enum.Font.GothamBold
+    searchBox.TextXAlignment = Enum.TextXAlignment.Left
+    searchBox.ClearTextOnFocus = false
+    searchBox.Parent = drawerContainer
+    Instance.new("UICorner", searchBox).CornerRadius = UDim.new(0, 6)
+    local searchStroke = Instance.new("UIStroke", searchBox)
+    searchStroke.Color = Color3.fromRGB(255, 100, 0)
+    searchStroke.Thickness = 1
+    local searchPad = Instance.new("UIPadding", searchBox)
+    searchPad.PaddingLeft = UDim.new(0, 6)
+
+    -- Scroll da lista
+    local songScroll = Instance.new("ScrollingFrame")
+    songScroll.Size = UDim2.new(1, 0, 0, 134)
+    songScroll.Position = UDim2.new(0, 0, 0, 26)
+    songScroll.BackgroundTransparency = 1
+    songScroll.BorderSizePixel = 0
+    songScroll.ScrollBarThickness = 2
+    songScroll.ScrollBarImageColor3 = Color3.fromRGB(255, 100, 0)
+    songScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+    songScroll.Parent = drawerContainer
+
+    local songLayout = Instance.new("UIListLayout", songScroll)
+    songLayout.Padding = UDim.new(0, 3)
+    songLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+    -- Paginação
+    local paginationRow = Instance.new("Frame")
+    paginationRow.Size = UDim2.new(1, 0, 0, 16)
+    paginationRow.Position = UDim2.new(0, 0, 0, 162)
+    paginationRow.BackgroundTransparency = 1
+    paginationRow.Parent = drawerContainer
+
+    local pagPrev = Instance.new("TextButton")
+    pagPrev.Size = UDim2.new(0, 22, 1, 0)
+    pagPrev.Position = UDim2.new(0, 0, 0, 0)
+    pagPrev.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+    pagPrev.BorderSizePixel = 0
+    pagPrev.Text = "<"
+    pagPrev.TextColor3 = Color3.fromRGB(255, 255, 255)
+    pagPrev.Font = Enum.Font.GothamBold
+    pagPrev.TextSize = 10
+    pagPrev.Parent = paginationRow
+    Instance.new("UICorner", pagPrev).CornerRadius = UDim.new(0, 4)
+
+    local pagLbl = Instance.new("TextLabel")
+    pagLbl.Size = UDim2.new(1, -56, 1, 0)
+    pagLbl.Position = UDim2.new(0, 28, 0, 0)
+    pagLbl.BackgroundColor3 = Color3.fromRGB(13, 13, 14)
+    pagLbl.BorderSizePixel = 0
+    pagLbl.Text = "Página 1"
+    pagLbl.TextColor3 = Color3.fromRGB(255, 100, 0)
+    pagLbl.Font = Enum.Font.GothamBold
+    pagLbl.TextSize = 8
+    pagLbl.Parent = paginationRow
+    Instance.new("UICorner", pagLbl).CornerRadius = UDim.new(0, 4)
+
+    local pagNext = Instance.new("TextButton")
+    pagNext.Size = UDim2.new(0, 22, 1, 0)
+    pagNext.Position = UDim2.new(1, -22, 0, 0)
+    pagNext.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+    pagNext.BorderSizePixel = 0
+    pagNext.Text = ">"
+    pagNext.TextColor3 = Color3.fromRGB(255, 255, 255)
+    pagNext.Font = Enum.Font.GothamBold
+    pagNext.TextSize = 10
+    pagNext.Parent = paginationRow
+    Instance.new("UICorner", pagNext).CornerRadius = UDim.new(0, 4)
+
+    -- Botão ◆
     local btnTop = Instance.new("TextButton")
     btnTop.Size = UDim2.new(0, 16, 0, 16)
     btnTop.Position = UDim2.new(1, -20, 0, 4)
@@ -1914,28 +1981,32 @@ task.spawn(function()
     btnTop.TextSize = 13
     btnTop.Parent = Player
 
-    -- Header Section (Capa + Informações)
+    -- Botão ▲/▼
+    local btnTopCenter = Instance.new("TextButton")
+    btnTopCenter.Size = UDim2.new(0, 20, 0, 14)
+    btnTopCenter.Position = UDim2.new(0.5, -10, 0, 3)
+    btnTopCenter.BackgroundTransparency = 1
+    btnTopCenter.Text = "▲"
+    btnTopCenter.TextColor3 = Color3.fromRGB(255, 100, 0)
+    btnTopCenter.Font = Enum.Font.GothamBold
+    btnTopCenter.TextSize = 10
+    btnTopCenter.Parent = Player
+
+    -- Header / Capa / Anel (INTACTO)
     local headerSection = Instance.new("Frame")
     headerSection.Size = UDim2.new(1, -20, 0, 44)
     headerSection.Position = UDim2.new(0, 10, 0, 10)
     headerSection.BackgroundTransparency = 1
     headerSection.Parent = Player
 
-    -- Moldura da Capa (Cover Box)
     local coverBox = Instance.new("Frame")
     coverBox.Size = UDim2.new(0, 44, 0, 44)
-    coverBox.Position = UDim2.new(0, 0, 0, 0)
     coverBox.BackgroundTransparency = 1
     coverBox.Parent = headerSection
-
-    local coverCorner = Instance.new("UICorner", coverBox)
-    coverCorner.CornerRadius = UDim.new(0, 12)
-
+    Instance.new("UICorner", coverBox).CornerRadius = UDim.new(0, 12)
     local coverStroke = Instance.new("UIStroke", coverBox)
-    coverStroke.Color = Color3.fromRGB(255, 100, 0)
-    coverStroke.Thickness = 1
+    coverStroke.Color = Color3.fromRGB(255, 100, 0); coverStroke.Thickness = 1
 
-    -- Anel Giratório em CSS (Com AnchorPoint centralizado)
     local anelGiratorio = Instance.new("Frame")
     anelGiratorio.AnchorPoint = Vector2.new(0.5, 0.5)
     anelGiratorio.Size = UDim2.new(0, 24, 0, 24)
@@ -1943,13 +2014,10 @@ task.spawn(function()
     anelGiratorio.BackgroundTransparency = 1
     anelGiratorio.Parent = coverBox
 
-    -- UIScale para transição fluida em sub-pixel
     local diskScale = Instance.new("UIScale")
     diskScale.Scale = 1
     diskScale.Parent = anelGiratorio
-
-    local anelCorner = Instance.new("UICorner", anelGiratorio)
-    anelCorner.CornerRadius = UDim.new(1, 0)
+    Instance.new("UICorner", anelGiratorio).CornerRadius = UDim.new(1, 0)
 
     local anelStroke = Instance.new("UIStroke", anelGiratorio)
     anelStroke.Thickness = 2.5
@@ -1966,7 +2034,6 @@ task.spawn(function()
         ColorSequenceKeypoint.new(1.00, Color3.fromRGB(179, 18, 0))
     })
 
-    -- Detalhes da Faixa
     local trackDetails = Instance.new("Frame")
     trackDetails.Size = UDim2.new(1, -54, 1, 0)
     trackDetails.Position = UDim2.new(0, 54, 0, 0)
@@ -1997,7 +2064,7 @@ task.spawn(function()
     trackArtist.TextTruncate = Enum.TextTruncate.AtEnd
     trackArtist.Parent = trackDetails
 
-    -- Área da Barra de Progresso
+    -- Progress
     local progressContainer = Instance.new("Frame")
     progressContainer.Size = UDim2.new(0, 130, 0, 16)
     progressContainer.Position = UDim2.new(0, 10, 0, 59)
@@ -2006,24 +2073,18 @@ task.spawn(function()
 
     local progressTrack = Instance.new("Frame")
     progressTrack.Size = UDim2.new(1, 0, 0, 2)
-    progressTrack.Position = UDim2.new(0, 0, 0, 0)
     progressTrack.BackgroundColor3 = Color3.fromRGB(26, 26, 26)
     progressTrack.BorderSizePixel = 0
     progressTrack.Parent = progressContainer
-
-    local trackCorner = Instance.new("UICorner", progressTrack)
-    trackCorner.CornerRadius = UDim.new(0, 12)
+    Instance.new("UICorner", progressTrack).CornerRadius = UDim.new(0, 12)
 
     local progressBar = Instance.new("Frame")
     progressBar.Size = UDim2.new(0, 0, 1, 0)
     progressBar.BackgroundColor3 = Color3.fromRGB(255, 100, 0)
     progressBar.BorderSizePixel = 0
     progressBar.Parent = progressTrack
+    Instance.new("UICorner", progressBar).CornerRadius = UDim.new(0, 12)
 
-    local barCorner = Instance.new("UICorner", progressBar)
-    barCorner.CornerRadius = UDim.new(0, 12)
-
-    -- Display de Tempo
     local timeDisplay = Instance.new("Frame")
     timeDisplay.Size = UDim2.new(1, 0, 0, 10)
     timeDisplay.Position = UDim2.new(0, 0, 0, 5)
@@ -2032,7 +2093,6 @@ task.spawn(function()
 
     local timeCurrent = Instance.new("TextLabel")
     timeCurrent.Size = UDim2.new(0.5, 0, 1, 0)
-    timeCurrent.Position = UDim2.new(0, 0, 0, 0)
     timeCurrent.BackgroundTransparency = 1
     timeCurrent.Text = "0:00"
     timeCurrent.TextColor3 = Color3.fromRGB(160, 160, 170)
@@ -2052,7 +2112,7 @@ task.spawn(function()
     timeTotal.TextXAlignment = Enum.TextXAlignment.Right
     timeTotal.Parent = timeDisplay
 
-    -- Row de Controles
+    -- Controls
     local controlsRow = Instance.new("Frame")
     controlsRow.Size = UDim2.new(0, 130, 0, 18)
     controlsRow.Position = UDim2.new(0, 10, 0, 82)
@@ -2060,75 +2120,55 @@ task.spawn(function()
     controlsRow.Parent = Player
 
     local prevBtn = Instance.new("TextButton")
-    prevBtn.Size = UDim2.new(0, 20, 1, 0)
-    prevBtn.Position = UDim2.new(0, 6, 0, 0)
-    prevBtn.BackgroundTransparency = 1
-    prevBtn.Text = "《《"
+    prevBtn.Size = UDim2.new(0, 20, 1, 0); prevBtn.Position = UDim2.new(0, 6, 0, 0)
+    prevBtn.BackgroundTransparency = 1; prevBtn.Text = "《《"
     prevBtn.TextColor3 = Color3.fromRGB(255, 100, 0)
-    prevBtn.Font = Enum.Font.GothamBold
-    prevBtn.TextSize = 11
+    prevBtn.Font = Enum.Font.GothamBold; prevBtn.TextSize = 11
     prevBtn.Parent = controlsRow
 
     local playBtn = Instance.new("TextButton")
-    playBtn.Size = UDim2.new(0, 20, 1, 0)
-    playBtn.Position = UDim2.new(0.5, -10, 0, 0)
-    playBtn.BackgroundTransparency = 1
-    playBtn.Text = "▶"
+    playBtn.Size = UDim2.new(0, 20, 1, 0); playBtn.Position = UDim2.new(0.5, -10, 0, 0)
+    playBtn.BackgroundTransparency = 1; playBtn.Text = "▶"
     playBtn.TextColor3 = Color3.fromRGB(255, 100, 0)
-    playBtn.Font = Enum.Font.GothamBold
-    playBtn.TextSize = 13
+    playBtn.Font = Enum.Font.GothamBold; playBtn.TextSize = 13
     playBtn.Parent = controlsRow
 
     local nextBtn = Instance.new("TextButton")
-    nextBtn.Size = UDim2.new(0, 20, 1, 0)
-    nextBtn.Position = UDim2.new(1, -26, 0, 0)
-    nextBtn.BackgroundTransparency = 1
-    nextBtn.Text = "》》"
+    nextBtn.Size = UDim2.new(0, 20, 1, 0); nextBtn.Position = UDim2.new(1, -26, 0, 0)
+    nextBtn.BackgroundTransparency = 1; nextBtn.Text = "》》"
     nextBtn.TextColor3 = Color3.fromRGB(255, 100, 0)
-    nextBtn.Font = Enum.Font.GothamBold
-    nextBtn.TextSize = 11
+    nextBtn.Font = Enum.Font.GothamBold; nextBtn.TextSize = 11
     nextBtn.Parent = controlsRow
 
     -- ==========================================================
-    -- PAINEL DE VOLUME FLUTUANTE
+    -- PAINEL DE VOLUME FLUTUANTE (Mantido fora do Player para não ser cortado)
     -- ==========================================================
     local volumePanel = Instance.new("CanvasGroup")
     volumePanel.Size = UDim2.new(0, 44, 0, 110)
-    volumePanel.Position = UDim2.new(1, 8, 0, 0)
+    volumePanel.Position = UDim2.new(0, 0, 0, 0) -- Posição base, atualizada pelo script
     volumePanel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    volumePanel.BackgroundTransparency = 0
-    volumePanel.BorderSizePixel = 0
     volumePanel.GroupTransparency = 1
     volumePanel.Visible = false
-    volumePanel.Parent = Player
+    volumePanel.Parent = MusicGui
 
-    local volCorner = Instance.new("UICorner", volumePanel)
-    volCorner.CornerRadius = UDim.new(0, 12)
-
+    Instance.new("UICorner", volumePanel).CornerRadius = UDim.new(0, 12)
     local volStroke = Instance.new("UIStroke", volumePanel)
-    volStroke.Color = Color3.fromRGB(255, 100, 0)
-    volStroke.Thickness = 1
+    volStroke.Color = Color3.fromRGB(255, 100, 0); volStroke.Thickness = 1
 
     local volSliderTrack = Instance.new("TextButton")
     volSliderTrack.Size = UDim2.new(0, 4, 0, 66)
     volSliderTrack.Position = UDim2.new(0.5, -2, 0, 14)
     volSliderTrack.BackgroundColor3 = Color3.fromRGB(26, 26, 26)
-    volSliderTrack.BorderSizePixel = 0
     volSliderTrack.Text = ""
     volSliderTrack.Parent = volumePanel
-
-    local volTrackCorner = Instance.new("UICorner", volSliderTrack)
-    volTrackCorner.CornerRadius = UDim.new(0, 12)
+    Instance.new("UICorner", volSliderTrack).CornerRadius = UDim.new(0, 12)
 
     local volSliderFill = Instance.new("Frame")
     volSliderFill.Size = UDim2.new(1, 0, 0.7, 0)
     volSliderFill.Position = UDim2.new(0, 0, 0.3, 0)
     volSliderFill.BackgroundColor3 = Color3.fromRGB(255, 100, 0)
-    volSliderFill.BorderSizePixel = 0
     volSliderFill.Parent = volSliderTrack
-
-    local volFillCorner = Instance.new("UICorner", volSliderFill)
-    volFillCorner.CornerRadius = UDim.new(0, 12)
+    Instance.new("UICorner", volSliderFill).CornerRadius = UDim.new(0, 12)
 
     local volPercentage = Instance.new("TextLabel")
     volPercentage.Size = UDim2.new(1, 0, 0, 12)
@@ -2140,48 +2180,49 @@ task.spawn(function()
     volPercentage.TextSize = 9
     volPercentage.Parent = volumePanel
 
-    -- Lógica do Fade de Volume
-    local hideTimer = nil
-    local currentFadeTween = nil
+    -- Função que atualiza a posição do volume (para grudar no Player)
+    local function updateVolumePosition()
+        volumePanel.Position = UDim2.new(
+            Player.Position.X.Scale, Player.Position.X.Offset + 158, 
+            Player.Position.Y.Scale, Player.Position.Y.Offset
+        )
+    end
+    updateVolumePosition()
 
+    local hideTimer, currentFadeTween
     local function showVolume()
         if hideTimer then task.cancel(hideTimer) end
         if currentFadeTween then currentFadeTween:Cancel() end
-        
         volumePanel.Visible = true
-        currentFadeTween = TweenService:Create(volumePanel, TweenInfo.new(0.3, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {
-            GroupTransparency = 0
-        })
+        currentFadeTween = TweenService:Create(volumePanel, TweenInfo.new(0.3, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), { GroupTransparency = 0 })
         currentFadeTween:Play()
-
         hideTimer = task.delay(1.8, function()
             if currentFadeTween then currentFadeTween:Cancel() end
-            currentFadeTween = TweenService:Create(volumePanel, TweenInfo.new(0.3, Enum.EasingStyle.Sine, Enum.EasingDirection.In), {
-                GroupTransparency = 1
-            })
+            currentFadeTween = TweenService:Create(volumePanel, TweenInfo.new(0.3, Enum.EasingStyle.Sine, Enum.EasingDirection.In), { GroupTransparency = 1 })
             currentFadeTween:Play()
             task.wait(0.3)
-            if volumePanel.GroupTransparency >= 0.9 then
-                volumePanel.Visible = false
-            end
+            if volumePanel.GroupTransparency >= 0.9 then volumePanel.Visible = false end
         end)
     end
 
     local isDraggingVol = false
     volSliderTrack.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            isDraggingVol = true
-            showVolume()
+            isDraggingVol = true; showVolume()
         end
     end)
-
     UserInputService.InputEnded:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             isDraggingVol = false
         end
     end)
 
-    local globalVolume = 1.0 * 0.7
+    -- ⚡ AUMENTADO O VOLUME MÁXIMO PARA FICAR BEM ALTO (2.0)
+    local globalVolume = 1.5 
+    volSliderFill.Size = UDim2.new(1, 0, 0.75, 0)
+    volSliderFill.Position = UDim2.new(0, 0, 0.25, 0)
+    volPercentage.Text = "75%"
+
     UserInputService.InputChanged:Connect(function(input)
         if isDraggingVol and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
             local relativeY = math.clamp(input.Position.Y - volSliderTrack.AbsolutePosition.Y, 0, volSliderTrack.AbsoluteSize.Y)
@@ -2189,17 +2230,16 @@ task.spawn(function()
             volSliderFill.Size = UDim2.new(1, 0, percent, 0)
             volSliderFill.Position = UDim2.new(0, 0, 1 - percent, 0)
             volPercentage.Text = math.floor(percent * 100) .. "%"
-            globalVolume = percent * 1.5
+            
+            -- ⚡ VOLUME MÁXIMO AUMENTADO AQUI (Percentual * 2.0)
+            globalVolume = percent * 2.0 
             showVolume()
         end
     end)
-
     Player.MouseEnter:Connect(showVolume)
     Player.MouseMoved:Connect(showVolume)
 
-    -- ==========================================================
-    -- LÓGICA DO PLAYER & REAÇÃO À BATIDA (BEAT-SYNC AJUSTADO)
-    -- ==========================================================
+    -- Player + Beat Sync (INTACTO)
     local currentSound = nil
     local currentIndex = 1
     local isPlaying = false
@@ -2207,53 +2247,37 @@ task.spawn(function()
     local currentRotation = 0
     local smoothedBeat = 0
 
-    -- Loop de RenderStepped suavizado
     RunService.RenderStepped:Connect(function(dt)
         local rawLoudness = 0
         if isPlaying and currentSound and currentSound.IsPlaying then
             rawLoudness = currentSound.PlaybackLoudness
         end
-
-        -- Filtro de sensibilidade: Ignora ruídos baixos (abaixo de 120) para focar apenas nas batidas/graves
         local targetAlpha = 0
         if rawLoudness > 120 then
             targetAlpha = math.clamp((rawLoudness - 120) / 400, 0, 1)
         end
-
-        -- Suavização gradual (Lerp) para evitar sobressaltos e solavancos
         smoothedBeat = smoothedBeat + (targetAlpha - smoothedBeat) * math.clamp(dt * 12, 0, 1)
-
-        -- 1. Velocidade de Giro controlada
-        local baseSpeed = 80
-        local maxSpeedBoost = 200
-        local speed = baseSpeed + (smoothedBeat * maxSpeedBoost)
+        local speed = 80 + (smoothedBeat * 200)
         currentRotation = (currentRotation + speed * dt) % 360
         ringGradient.Rotation = currentRotation
-
-        -- 2. Espessura suave apenas no anel giratório
         anelStroke.Thickness = 2.5 + (smoothedBeat * 2)
-
-        -- 3. Escala sub-pixel ultra-fluida do disco via UIScale (0.25 = até +25% de expansão)
         diskScale.Scale = 1 + (smoothedBeat * 0.25)
     end)
 
     local function formatTime(seconds)
         if not seconds or seconds ~= seconds or seconds <= 0 then return "0:00" end
-        local mins = math.floor(seconds / 60)
-        local secs = math.floor(seconds % 60)
-        return string.format("%d:%02d", mins, secs)
+        return string.format("%d:%02d", math.floor(seconds/60), math.floor(seconds%60))
     end
 
     local function UpdateProgress()
         if currentSound and currentSound.IsLoaded and currentSound.TimeLength > 0 then
-            local progressPercent = math.clamp(currentSound.TimePosition / currentSound.TimeLength, 0, 1)
-            progressBar.Size = UDim2.new(progressPercent, 0, 1, 0)
+            local p = math.clamp(currentSound.TimePosition / currentSound.TimeLength, 0, 1)
+            progressBar.Size = UDim2.new(p, 0, 1, 0)
             timeCurrent.Text = formatTime(currentSound.TimePosition)
             timeTotal.Text = formatTime(currentSound.TimeLength)
         else
             progressBar.Size = UDim2.new(0, 0, 1, 0)
-            timeCurrent.Text = "0:00"
-            timeTotal.Text = "0:00"
+            timeCurrent.Text = "0:00"; timeTotal.Text = "0:00"
         end
         if currentSound then currentSound.Volume = globalVolume end
     end
@@ -2266,39 +2290,35 @@ task.spawn(function()
             end
         end)
     end
-
     local function StopProgressUpdate()
-        if progressConnection then
-            progressConnection:Disconnect()
-            progressConnection = nil
-        end
+        if progressConnection then progressConnection:Disconnect(); progressConnection = nil end
     end
 
-    local function PlaySong(index)
-        if currentSound then 
-            currentSound:Stop() 
-            currentSound:Destroy() 
-            currentSound = nil
+    local function PlaySong(index, overrideId, overrideTitle)
+        if currentSound then currentSound:Stop(); currentSound:Destroy(); currentSound = nil end
+        if #musicList == 0 and not overrideId then return end
+        if overrideId then
+            currentIndex = -1
+        else
+            if index < 1 then index = #musicList end
+            if index > #musicList then index = 1 end
+            currentIndex = index
         end
-        if #musicList == 0 then return end
-        if index < 1 then index = #musicList end
-        if index > #musicList then index = 1 end
-        currentIndex = index
+        local songId = overrideId or musicList[currentIndex]
 
-        local songId = musicList[currentIndex]
-
-        -- Busca o nome real do áudio pelo ID no Roblox
-        trackTitle.Text = "Buscando nome..."
-        task.spawn(function()
-            local success, info = pcall(function()
-                return MarketplaceService:GetProductInfo(tonumber(songId), Enum.InfoType.Asset)
+        if overrideTitle and overrideTitle ~= "" then
+            trackTitle.Text = overrideTitle
+        else
+            trackTitle.Text = "Buscando nome..."
+            task.spawn(function()
+                local ok, info = pcall(function() return MarketplaceService:GetProductInfo(tonumber(songId), Enum.InfoType.Asset) end)
+                if ok and info and info.Name and info.Name ~= "" then
+                    trackTitle.Text = info.Name
+                else
+                    trackTitle.Text = "Música #" .. songId
+                end
             end)
-            if success and info and info.Name and info.Name ~= "" then
-                trackTitle.Text = info.Name
-            else
-                trackTitle.Text = "Música #" .. songId
-            end
-        end)
+        end
 
         currentSound = Instance.new("Sound")
         currentSound.SoundId = "rbxassetid://" .. songId
@@ -2310,36 +2330,25 @@ task.spawn(function()
         local function autoSkip(reason)
             if hasSkipped then return end
             hasSkipped = true
-            warn("⚠️ [NERO PLAYER] Áudio " .. tostring(songId) .. " indisponível (" .. tostring(reason) .. "). Pulando faixa...")
-            if currentSound then
-                currentSound:Stop()
-                currentSound:Destroy()
-                currentSound = nil
-            end
+            warn("⚠️ [NERO] Áudio " .. tostring(songId) .. " indisponível (" .. tostring(reason) .. ")")
+            if currentSound then currentSound:Stop(); currentSound:Destroy(); currentSound = nil end
             task.wait(0.3)
-            PlaySong(currentIndex + 1)
+            if currentIndex ~= -1 then PlaySong(currentIndex + 1) end
         end
 
-        -- Auto-skip se o áudio não carregar (bloqueado pelo Roblox)
         local loadTimeout = task.delay(3.5, function()
-            if currentSound and not currentSound.IsLoaded then
-                autoSkip("Bloqueado ou Timeout de Carregamento")
-            end
+            if currentSound and not currentSound.IsLoaded then autoSkip("Timeout") end
         end)
 
         currentSound.Loaded:Connect(function()
             if loadTimeout then task.cancel(loadTimeout) end
-            if currentSound and currentSound.TimeLength <= 0 then
-                autoSkip("Duração nula / Áudio Bloqueado")
-                return
-            end
+            if currentSound and currentSound.TimeLength <= 0 then autoSkip("Duração nula"); return end
             UpdateProgress()
         end)
-
         currentSound.Ended:Connect(function()
             if loadTimeout then task.cancel(loadTimeout) end
             progressBar.Size = UDim2.new(0, 0, 1, 0)
-            PlaySong(currentIndex + 1)
+            if currentIndex ~= -1 then PlaySong(currentIndex + 1) end
         end)
 
         currentSound:Play()
@@ -2348,33 +2357,221 @@ task.spawn(function()
     end
 
     local function TogglePlay()
-        if #musicList == 0 then return end
         if isPlaying then
             if currentSound then currentSound:Pause() end
             isPlaying = false
             StopProgressUpdate()
         else
-            if currentSound then 
-                currentSound:Resume()
-                isPlaying = true
-                StartProgressUpdate()
+            if currentSound then
+                currentSound:Resume(); isPlaying = true; StartProgressUpdate()
             else
-                PlaySong(currentIndex)
+                PlaySong(currentIndex > 0 and currentIndex or 1)
             end
         end
     end
 
+    -- ==========================================================
+    -- 🔥 ABA DE PESQUISA = 100% CATÁLOGO ROBLOX (IGUAL MINIFIXHUB)
+    -- ==========================================================
+    local CurrentPages = nil
+    local PageNum = 1
+
+    -- MORPH: Player cresce/encolhe com animação suave
+    local isExpanded = false
+    local growTween, fadeTween
+
+    local function toggleDrawer()
+        if growTween then growTween:Cancel() end
+        if fadeTween then fadeTween:Cancel() end
+        isExpanded = not isExpanded
+        btnTopCenter.Text = isExpanded and "▼" or "▲"
+
+        if isExpanded then
+            drawerContainer.Visible = true
+            drawerContainer.GroupTransparency = 1
+            -- Já começa em 110 (onde o header acaba)
+            drawerContainer.Position = UDim2.new(0, 0, 0, 110) 
+
+            growTween = TweenService:Create(Player, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+                Size = UDim2.new(0, 150, 0, EXPANDED_H)
+            })
+            growTween:Play()
+
+            fadeTween = TweenService:Create(drawerContainer, TweenInfo.new(0.45, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+                GroupTransparency = 0
+            })
+            fadeTween:Play()
+
+            TweenService:Create(playerStroke, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, 0, true), {
+                Thickness = 2.5
+            }):Play()
+        else
+            fadeTween = TweenService:Create(drawerContainer, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+                GroupTransparency = 1
+            })
+            fadeTween:Play()
+
+            growTween = TweenService:Create(Player, TweenInfo.new(0.45, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+                Size = UDim2.new(0, 150, 0, COLLAPSED_H)
+            })
+            growTween.Completed:Connect(function()
+                if not isExpanded then drawerContainer.Visible = false end
+            end)
+            growTween:Play()
+        end
+    end
+    btnTopCenter.MouseButton1Click:Connect(toggleDrawer)
+
+    -- Limpa só frames/labels (mantém o UIListLayout)
+    local function ClearList()
+        for _, v in ipairs(songScroll:GetChildren()) do
+            if v:IsA("Frame") or v:IsA("TextLabel") then v:Destroy() end
+        end
+    end
+
+    -- Renderiza APENAS os resultados do catálogo (IDÊNTICO ao MiniFixHub)
+    local function LoadCurrent()
+        ClearList()
+
+        if not CurrentPages then
+            local empty = Instance.new("TextLabel")
+            empty.Size = UDim2.new(1, 0, 0, 30)
+            empty.BackgroundTransparency = 1
+            empty.Text = "Pesquise algo..."
+            empty.TextColor3 = Color3.fromRGB(102, 102, 112)
+            empty.Font = Enum.Font.GothamBold
+            empty.TextSize = 8
+            empty.Parent = songScroll
+            return
+        end
+
+        local data = CurrentPages:GetCurrentPage()
+        for _, audio in ipairs(data) do
+            local id = audio.AssetId or audio.assetId or audio.Id or audio.id
+            if id then
+                local Row = Instance.new("Frame")
+                Row.Size = UDim2.new(1, 0, 0, 26)
+                Row.BackgroundColor3 = Color3.fromRGB(8, 8, 10)
+                Row.BorderSizePixel = 0
+                Row.Parent = songScroll
+                Instance.new("UICorner", Row).CornerRadius = UDim.new(0, 5)
+                local rowStroke = Instance.new("UIStroke", Row)
+                rowStroke.Color = Color3.fromRGB(20, 20, 24); rowStroke.Thickness = 1
+
+                local rowPad = Instance.new("UIPadding", Row)
+                rowPad.PaddingLeft = UDim.new(0, 4); rowPad.PaddingRight = UDim.new(0, 4)
+
+                local B = Instance.new("TextButton")
+                B.Size = UDim2.new(1, 0, 1, 0)
+                B.BackgroundTransparency = 1
+                B.Text = " " .. (audio.Title or ("Áudio " .. tostring(id)))
+                B.TextColor3 = Color3.fromRGB(255, 255, 255)
+                B.Font = Enum.Font.GothamBold
+                B.TextSize = 8
+                B.TextXAlignment = Enum.TextXAlignment.Left
+                B.TextTruncate = Enum.TextTruncate.AtEnd
+                B.Parent = Row
+
+                B.MouseButton1Click:Connect(function()
+                    PlaySong(nil, tostring(id), audio.Title)
+                end)
+
+                Row.MouseEnter:Connect(function()
+                    Row.BackgroundColor3 = Color3.fromRGB(255, 100, 0, 0.15)
+                    rowStroke.Color = Color3.fromRGB(255, 100, 0)
+                end)
+                Row.MouseLeave:Connect(function()
+                    Row.BackgroundColor3 = Color3.fromRGB(8, 8, 10)
+                    rowStroke.Color = Color3.fromRGB(20, 20, 24)
+                end)
+            end
+        end
+
+        songScroll.CanvasSize = UDim2.new(0, 0, 0, songLayout.AbsoluteContentSize.Y)
+        pagLbl.Text = "Página " .. PageNum
+    end
+
+    -- Busca REAL no catálogo
+    local function NewSearch(q)
+        q = tostring(q or "")
+        if q == "" then return end
+
+        ClearList()
+        local loadingLbl = Instance.new("TextLabel")
+        loadingLbl.Size = UDim2.new(1, 0, 0, 30)
+        loadingLbl.BackgroundTransparency = 1
+        loadingLbl.Text = "Buscando..."
+        loadingLbl.TextColor3 = Color3.fromRGB(255, 100, 0)
+        loadingLbl.Font = Enum.Font.GothamBold
+        loadingLbl.TextSize = 8
+        loadingLbl.Parent = songScroll
+
+        task.spawn(function()
+            local ok, result = pcall(function()
+                local p = Instance.new("AudioSearchParams")
+                p.SearchKeyword = q
+                return AssetService:SearchAudio(p)
+            end)
+
+            if loadingLbl and loadingLbl.Parent then loadingLbl:Destroy() end
+
+            if ok and result then
+                CurrentPages = result
+                PageNum = 1
+                LoadCurrent()
+            else
+                warn("⚠️ [NERO SEARCH] Falha:", result)
+                CurrentPages = nil
+                LoadCurrent()
+            end
+        end)
+    end
+
+    searchBox.FocusLost:Connect(function(enterPressed)
+        if enterPressed then NewSearch(searchBox.Text) end
+    end)
+
+    pagNext.MouseButton1Click:Connect(function()
+        if CurrentPages and not CurrentPages.IsFinished then
+            task.spawn(function()
+                local ok = pcall(function() CurrentPages:AdvanceToNextPageAsync() end)
+                if ok then
+                    PageNum = PageNum + 1
+                    LoadCurrent()
+                end
+            end)
+        end
+    end)
+
+    pagPrev.MouseButton1Click:Connect(function()
+        if PageNum > 1 then
+            NewSearch(searchBox.Text)
+        end
+    end)
+
+    -- Estado inicial da lista
+    ClearList()
+    local placeholder = Instance.new("TextLabel")
+    placeholder.Size = UDim2.new(1, 0, 0, 30)
+    placeholder.BackgroundTransparency = 1
+    placeholder.Text = "Pesquise algo..."
+    placeholder.TextColor3 = Color3.fromRGB(102, 102, 112)
+    placeholder.Font = Enum.Font.GothamBold
+    placeholder.TextSize = 8
+    placeholder.Parent = songScroll
+
+    -- Controles originais
     playBtn.MouseButton1Click:Connect(TogglePlay)
     nextBtn.MouseButton1Click:Connect(function()
-        if #musicList > 0 then 
+        if #musicList > 0 then
             progressBar.Size = UDim2.new(0, 0, 1, 0)
-            PlaySong(currentIndex + 1) 
+            PlaySong(currentIndex + 1)
         end
     end)
     prevBtn.MouseButton1Click:Connect(function()
-        if #musicList > 0 then 
+        if #musicList > 0 then
             progressBar.Size = UDim2.new(0, 0, 1, 0)
-            PlaySong(currentIndex - 1) 
+            PlaySong(currentIndex - 1)
         end
     end)
 
@@ -2397,18 +2594,14 @@ task.spawn(function()
     if NFBtn then
         local holdTimer = nil
         local isHeld = false
-
         NFBtn.InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                 isHeld = true
                 holdTimer = task.delay(1, function()
-                    if isHeld and not MusicGui.Enabled then
-                        OpenMusicPlayer()
-                    end
+                    if isHeld and not MusicGui.Enabled then OpenMusicPlayer() end
                 end)
             end
         end)
-
         NFBtn.InputEnded:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                 isHeld = false
@@ -2417,10 +2610,9 @@ task.spawn(function()
         end)
     end
 
-    -- Sistema de Arraste da Janela (Drag)
+    -- Drag
     local dragging = false
     local dragInput, dragStart, startPos
-
     Player.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             showVolume()
@@ -2428,34 +2620,25 @@ task.spawn(function()
             dragStart = input.Position
             startPos = Player.Position
             input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    dragging = false
-                end
+                if input.UserInputState == Enum.UserInputState.End then dragging = false end
             end)
         end
     end)
-
     Player.InputChanged:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
             dragInput = input
         end
     end)
-
     UserInputService.InputChanged:Connect(function(input)
         if input == dragInput and dragging then
             local delta = input.Position - dragStart
-            Player.Position = UDim2.new(
-                startPos.X.Scale,
-                startPos.X.Offset + delta.X,
-                startPos.Y.Scale,
-                startPos.Y.Offset + delta.Y
-            )
+            Player.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+            updateVolumePosition() -- Atualiza a posição da barra de volume ao arrastar
         end
     end)
 
-    print("🎵 [NERO] Music Player v7 com sincronização ajustada e suave!")
+    print("🎵 [NERO] v8.4 – Morph suave no ▲, Volume Restaurado e Alto (2.0)")
 end)
-
 
 -- [[ NERO HUB: Módulo de Câmera (Mobile / Bypass) - V3.1 ]] --
 task.spawn(function()
