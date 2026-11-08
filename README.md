@@ -1,3 +1,318 @@
+--==========================================================
+-- NERO//FE  //  ABERTURA (loading) STANDALONE  //  ORANGE
+-- Cole ESTE bloco no TOPO de qualquer script.
+-- Ele segura a execução até a animação acabar (~5s) e depois o
+-- resto do seu script roda normalmente logo abaixo.
+-- Tudo fica dentro de "do ... end", então não gasta variáveis
+-- locais do seu script (limite de 200).
+--==========================================================
+do
+local Players = game:GetService("Players")
+local RS      = game:GetService("RunService")
+local TS      = game:GetService("TweenService")
+local Debris  = game:GetService("Debris")
+local MPS     = game:GetService("MarketplaceService")
+
+----------------------- CONFIG (mexa aqui) -----------------------
+local NEON      = Color3.fromRGB(255, 106, 0)   -- laranja neon (255,255,255 seria branco)
+local TITULO    = "NERO//FE"
+local SUBTITULO = "ORANGE EDITION  //  v21"
+local ARQUIVO   = "nero_core.lua"               -- nome no topo do painel de código
+local AGUARDAR  = true                          -- true: o script abaixo só roda depois da abertura
+                                                -- false: a abertura roda em paralelo
+------------------------------------------------------------------
+
+local GLOW  = Color3.fromRGB(255, 150, 40)
+local AMBER = Color3.fromRGB(255, 176, 0)
+local RED   = Color3.fromRGB(255, 62, 0)
+local TEXT  = Color3.fromRGB(255, 240, 225)
+local SUB   = Color3.fromRGB(165, 132, 108)
+local OFF   = Color3.fromRGB(56, 38, 26)
+
+if not game:IsLoaded() then game.Loaded:Wait() end
+
+-- ---------- helpers ----------
+local function new(class, props, parent)
+    local o = Instance.new(class)
+    for k, v in pairs(props or {}) do o[k] = v end
+    if parent then o.Parent = parent end
+    return o
+end
+local function corner(o, r) return new("UICorner", {CornerRadius=UDim.new(0,r)}, o) end
+local function stroke(o, c, th, tr)
+    return new("UIStroke", {Color=c, Thickness=th or 1, Transparency=tr or 0, ApplyStrokeMode=Enum.ApplyStrokeMode.Border}, o)
+end
+local function tw(o, t, p, es, ed)
+    local x = TS:Create(o, TweenInfo.new(t, es or Enum.EasingStyle.Quad, ed or Enum.EasingDirection.Out), p)
+    x:Play()
+    return x
+end
+local function safeParent()
+    if gethui then
+        local ok, h = pcall(gethui)
+        if ok and h then return h end
+    end
+    local ok, cg = pcall(function() return game:GetService("CoreGui") end)
+    if ok and cg then return cg end
+    return Players.LocalPlayer:WaitForChild("PlayerGui")
+end
+local function hx(c)
+    return string.format("#%02X%02X%02X", math.floor(c.R*255+0.5), math.floor(c.G*255+0.5), math.floor(c.B*255+0.5))
+end
+
+local function run()
+    local parent = safeParent()
+    pcall(function() local o = parent:FindFirstChild("NERO_INTRO") if o then o:Destroy() end end)
+    local gui = new("ScreenGui", {Name="NERO_INTRO", ResetOnSpawn=false, IgnoreGuiInset=true,
+        ZIndexBehavior=Enum.ZIndexBehavior.Sibling, DisplayOrder=1000}, parent)
+    local rc
+
+    local ok, err = pcall(function()
+        local ov = new("Frame", {Name="Boot", Size=UDim2.fromScale(1,1), BackgroundColor3=Color3.new(1,1,1),
+            BorderSizePixel=0, ZIndex=1000, ClipsDescendants=true}, gui)
+        new("UIGradient", {Color=ColorSequence.new(Color3.fromRGB(26,11,3), Color3.fromRGB(5,3,2)), Rotation=90}, ov)
+
+        -- grade de fundo
+        for i = 1, 11 do
+            new("Frame", {Size=UDim2.new(0,1,1,0), Position=UDim2.new(i/12,0,0,0), BackgroundColor3=NEON,
+                BackgroundTransparency=0.94, BorderSizePixel=0}, ov)
+        end
+        for i = 1, 7 do
+            new("Frame", {Size=UDim2.new(1,0,0,1), Position=UDim2.new(0,0,i/8,0), BackgroundColor3=NEON,
+                BackgroundTransparency=0.94, BorderSizePixel=0}, ov)
+        end
+
+        -- partículas subindo
+        for _ = 1, 26 do
+            local s = math.random(2,4)
+            local y0 = math.random(30,110) / 100
+            local x0 = math.random(0,100) / 100
+            local p = new("Frame", {Size=UDim2.fromOffset(s,s), Position=UDim2.new(x0,0,y0,0),
+                BackgroundColor3=(math.random() > 0.5) and NEON or GLOW,
+                BackgroundTransparency=math.random(30,70)/100, BorderSizePixel=0, ZIndex=2}, ov)
+            TS:Create(p, TweenInfo.new((y0 + 0.05) * math.random(40,80) / 10, Enum.EasingStyle.Linear, Enum.EasingDirection.Out, -1),
+                {Position=UDim2.new(x0,0,-0.05,0)}):Play()
+        end
+
+        -- barra de scan descendo
+        local sc = new("Frame", {Size=UDim2.new(1,0,0,60), Position=UDim2.new(0,0,0,-60), BackgroundColor3=NEON,
+            BackgroundTransparency=0.88, BorderSizePixel=0, ZIndex=3}, ov)
+        new("UIGradient", {Rotation=90, Transparency=NumberSequence.new({NumberSequenceKeypoint.new(0,1),
+            NumberSequenceKeypoint.new(0.5,0), NumberSequenceKeypoint.new(1,1)})}, sc)
+        TS:Create(sc, TweenInfo.new(2.2, Enum.EasingStyle.Linear, Enum.EasingDirection.Out, -1), {Position=UDim2.new(0,0,1,0)}):Play()
+
+        -- cantos estilo HUD
+        local function bracket(ax, ay)
+            local b = new("Frame", {AnchorPoint=Vector2.new(ax,ay), Size=UDim2.fromOffset(22,22),
+                Position=UDim2.new(ax, ax == 0 and 14 or -14, ay, ay == 0 and 14 or -14), BackgroundTransparency=1, ZIndex=4}, ov)
+            new("Frame", {Size=UDim2.new(1,0,0,2), Position=UDim2.new(0,0,ay, ay == 0 and 0 or -2),
+                BackgroundColor3=NEON, BorderSizePixel=0}, b)
+            new("Frame", {Size=UDim2.new(0,2,1,0), Position=UDim2.new(ax, ax == 0 and 0 or -2, 0, 0),
+                BackgroundColor3=NEON, BorderSizePixel=0}, b)
+        end
+        bracket(0,0); bracket(1,0); bracket(0,1); bracket(1,1)
+
+        -- ===== lado esquerdo: logo, título, progresso =====
+        local Left = new("Frame", {AnchorPoint=Vector2.new(0.5,0.5), Size=UDim2.fromOffset(280,236),
+            Position=UDim2.new(0.28,0,0.5,0), BackgroundTransparency=1, ZIndex=5}, ov)
+
+        local holder = new("Frame", {AnchorPoint=Vector2.new(0.5,0), Size=UDim2.fromOffset(96,96),
+            Position=UDim2.new(0.5,0,0,0), BackgroundTransparency=1}, Left)
+        local base = new("Frame", {AnchorPoint=Vector2.new(0.5,0.5), Size=UDim2.fromOffset(84,84),
+            Position=UDim2.fromScale(0.5,0.5), BackgroundTransparency=1}, holder)
+        corner(base, 42); stroke(base, NEON, 1, 0.8)
+        local function ring(size, th, color)
+            local r = new("Frame", {AnchorPoint=Vector2.new(0.5,0.5), Size=UDim2.fromOffset(size,size),
+                Position=UDim2.fromScale(0.5,0.5), BackgroundTransparency=1}, holder)
+            corner(r, size/2)
+            local s = stroke(r, color, th, 0)
+            return new("UIGradient", {Transparency=NumberSequence.new({NumberSequenceKeypoint.new(0,0),
+                NumberSequenceKeypoint.new(0.4,0), NumberSequenceKeypoint.new(0.41,1), NumberSequenceKeypoint.new(1,1)})}, s)
+        end
+        local g1, g2 = ring(94, 3, NEON), ring(74, 2, GLOW)
+        new("TextLabel", {Size=UDim2.fromScale(1,1), BackgroundTransparency=1, Text=TITULO:sub(1,1), TextColor3=NEON,
+            Font=Enum.Font.SciFi, TextSize=34}, holder)
+
+        rc = RS.RenderStepped:Connect(function()
+            if not ov.Parent then rc:Disconnect() return end
+            local t = tick()
+            g1.Rotation = (t * 260) % 360
+            g2.Rotation = (-t * 150) % 360
+        end)
+
+        local function titleLbl(color, trans, z)
+            return new("TextLabel", {Size=UDim2.new(1,0,0,40), Position=UDim2.new(0,0,0,104), BackgroundTransparency=1,
+                Text="", TextColor3=color, TextTransparency=trans, Font=Enum.Font.SciFi, TextSize=34, ZIndex=z}, Left)
+        end
+        local tA, tB, tM = titleLbl(RED, 0.35, 5), titleLbl(GLOW, 0.35, 5), titleLbl(TEXT, 0, 6)
+        new("TextLabel", {Size=UDim2.new(1,0,0,14), Position=UDim2.new(0,0,0,144), BackgroundTransparency=1,
+            Text=SUBTITULO, TextColor3=SUB, Font=Enum.Font.Code, TextSize=10, ZIndex=5}, Left)
+
+        local stat = new("TextLabel", {Size=UDim2.new(0.75,0,0,14), Position=UDim2.new(0,0,0,168), BackgroundTransparency=1,
+            Text="", TextColor3=GLOW, Font=Enum.Font.Code, TextSize=11, TextXAlignment=Enum.TextXAlignment.Left, ZIndex=5}, Left)
+        local pct = new("TextLabel", {Size=UDim2.new(0.25,0,0,14), Position=UDim2.new(0.75,0,0,168), BackgroundTransparency=1,
+            Text="0%", TextColor3=TEXT, Font=Enum.Font.Code, TextSize=11, TextXAlignment=Enum.TextXAlignment.Right, ZIndex=5}, Left)
+        local barBg = new("Frame", {Size=UDim2.new(1,0,0,4), Position=UDim2.new(0,0,0,188), BackgroundColor3=OFF,
+            BorderSizePixel=0, ZIndex=5}, Left)
+        corner(barBg, 2)
+        local fill = new("Frame", {Size=UDim2.new(0,0,1,0), BackgroundColor3=Color3.new(1,1,1), BorderSizePixel=0, ZIndex=6}, barBg)
+        corner(fill, 2)
+        new("UIGradient", {Color=ColorSequence.new(RED, GLOW)}, fill)
+        local alvo = new("TextLabel", {Size=UDim2.new(1,0,0,12), Position=UDim2.new(0,0,0,202), BackgroundTransparency=1,
+            Text="alvo: carregando...", TextColor3=SUB, Font=Enum.Font.Code, TextSize=9,
+            TextXAlignment=Enum.TextXAlignment.Left, ZIndex=5}, Left)
+        task.spawn(function()
+            local nome
+            pcall(function() nome = MPS:GetProductInfo(game.PlaceId).Name end)
+            if alvo.Parent then alvo.Text = "alvo: "..((nome and nome:sub(1,30)) or "universal") end
+        end)
+
+        -- glitch do título
+        task.spawn(function()
+            while ov.Parent do
+                task.wait(math.random(8,20) / 10)
+                if not ov.Parent then break end
+                for _ = 1, 4 do
+                    tA.Position = UDim2.new(0, math.random(-4,4), 0, 104 + math.random(-1,1))
+                    tB.Position = UDim2.new(0, math.random(-4,4), 0, 104 + math.random(-1,1))
+                    task.wait(0.04)
+                end
+                tA.Position, tB.Position = UDim2.new(0,0,0,104), UDim2.new(0,0,0,104)
+            end
+        end)
+
+        -- ===== lado direito: painel com código sendo gerado =====
+        local Panel = new("Frame", {AnchorPoint=Vector2.new(1,0.5), Size=UDim2.new(0.4,0,0.74,0),
+            Position=UDim2.new(1,60,0.5,0), BackgroundColor3=Color3.fromRGB(14,8,4), BackgroundTransparency=0.12,
+            BorderSizePixel=0, ClipsDescendants=true, ZIndex=4}, ov)
+        corner(Panel, 6); stroke(Panel, NEON, 1.5, 0.3)
+        local ph = new("Frame", {Size=UDim2.new(1,0,0,24), BackgroundColor3=Color3.fromRGB(46,20,6), BorderSizePixel=0, ZIndex=5}, Panel)
+        new("Frame", {Size=UDim2.new(1,0,0,1), Position=UDim2.new(0,0,1,-1), BackgroundColor3=NEON,
+            BackgroundTransparency=0.4, BorderSizePixel=0, ZIndex=6}, ph)
+        local pdot = new("Frame", {Size=UDim2.fromOffset(6,6), Position=UDim2.new(0,10,0,9), BackgroundColor3=NEON,
+            BorderSizePixel=0, ZIndex=6}, ph)
+        corner(pdot, 3)
+        TS:Create(pdot, TweenInfo.new(0.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {BackgroundTransparency=0.85}):Play()
+        new("TextLabel", {Size=UDim2.new(1,-30,1,0), Position=UDim2.new(0,24,0,0), BackgroundTransparency=1,
+            Text=ARQUIVO.."  //  compilando", TextColor3=GLOW, Font=Enum.Font.Code, TextSize=10,
+            TextXAlignment=Enum.TextXAlignment.Left, ZIndex=6}, ph)
+
+        local Lines = new("Frame", {Size=UDim2.new(1,-16,1,-34), Position=UDim2.new(0,8,0,29), BackgroundTransparency=1,
+            ClipsDescendants=true, ZIndex=5}, Panel)
+        new("UIListLayout", {VerticalAlignment=Enum.VerticalAlignment.Bottom, SortOrder=Enum.SortOrder.LayoutOrder,
+            Padding=UDim.new(0,1)}, Lines)
+        tw(Panel, 0.55, {Position=UDim2.new(1,-24,0.5,0)}, Enum.EasingStyle.Back)
+
+        -- código colorido (RichText)
+        local H_NEON, H_AMBER = hx(NEON), hx(AMBER)
+        local function kw(s)  return '<font color="'..H_NEON..'">'..s..'</font>' end
+        local function str(s) return '<font color="'..H_AMBER..'">&quot;'..s..'&quot;</font>' end
+        local function num(s) return '<font color="#FFFFFF">'..tostring(s)..'</font>' end
+        local function cm(s)  return '<font color="#8A5A3A">-- '..s..'</font>' end
+        local idents = {"core","hook","net","ui","ctx","bus","vm","cfg","sig","mem","gfx","fx","io","rt"}
+        local mods   = {"nero.core","nero.neon","nero.hooks","nero.fx","nero.net","nero.ui","nero.input","nero.render","nero.cache"}
+        local fns    = {"init","bind","mount","patch","sync","render","hydrate","dispatch","compile","link","boot","tick"}
+        local function pick(t) return t[math.random(#t)] end
+        local function hex(n)
+            local s = ""
+            for _ = 1, n do s = s..string.format("%X", math.random(0,15)) end
+            return s
+        end
+        local gens = {
+            function() return kw("local").." "..pick(idents).." = "..kw("require").."("..str(pick(mods))..")" end,
+            function() return kw("local function").." "..pick(fns).."("..pick(idents)..", "..pick(idents)..")" end,
+            function() return "  "..pick(idents).."."..pick(fns).."("..num(math.random(1,255))..", "..str(hex(6))..")" end,
+            function() return kw("if").." "..pick(idents).." "..kw("then").." "..pick(fns).."() "..kw("end") end,
+            function() return cm("0x"..hex(8).." linked "..pick(mods)) end,
+            function() return "  "..pick(idents).." = "..num("0x"..hex(4)).." + "..num(math.random(1,64)) end,
+            function() return kw("for").." i = "..num(1)..", "..num(math.random(8,64)).." "..kw("do") end,
+            function() return "  "..pick(idents)..":"..pick(fns).."("..str("neon")..")" end,
+            function() return kw("return").." "..pick(idents) end,
+            function() return kw("end") end,
+            function() return cm("tuning orange glow "..math.random(10,99).."%") end,
+            function() return str("0x"..hex(16)) end,
+        }
+
+        local lineNo, queue = 0, {}
+        local function addLine(txt)
+            lineNo = lineNo + 1
+            local l = new("TextLabel", {Size=UDim2.new(1,0,0,12), BackgroundTransparency=1, RichText=true,
+                Font=Enum.Font.Code, TextSize=10, TextColor3=TEXT, TextXAlignment=Enum.TextXAlignment.Left,
+                TextTruncate=Enum.TextTruncate.AtEnd, LayoutOrder=lineNo, TextTransparency=1, ZIndex=5,
+                Text=string.format('<font color="#5C3A22">%04d</font>  %s', lineNo, txt)}, Lines)
+            tw(l, 0.15, {TextTransparency=0})
+            table.insert(queue, l)
+            local maxL = math.floor(Lines.AbsoluteSize.Y / 13) + 2
+            while #queue > maxL do
+                table.remove(queue, 1):Destroy()
+            end
+        end
+
+        local streaming = true
+        task.spawn(function()
+            task.wait()
+            while streaming and ov.Parent do
+                addLine(gens[math.random(#gens)]())
+                task.wait(math.random(2,7) / 100)
+            end
+        end)
+
+        -- ===== sequência =====
+        for i = 1, #TITULO do
+            local s = TITULO:sub(1, i) .. (i < #TITULO and "_" or "")
+            tA.Text, tB.Text, tM.Text = s, s, s
+            task.wait(0.06)
+        end
+
+        local status = {
+            {0,   "> iniciando núcleo..."},
+            {18,  "> carregando módulos..."},
+            {40,  "> sincronizando interface..."},
+            {62,  "> calibrando neon laranja..."},
+            {84,  "> compilando abas..."},
+            {100, "> ACESSO LIBERADO"},
+        }
+        local si = 1
+        for p = 0, 100 do
+            pct.Text = p.."%"
+            tw(fill, 0.06, {Size=UDim2.new(p/100,0,1,0)}, Enum.EasingStyle.Linear)
+            while si <= #status and p >= status[si][1] do
+                stat.Text = status[si][2]
+                si = si + 1
+            end
+            if p == 35 or p == 70 then task.wait(0.25) end
+            task.wait(p < 90 and 0.035 or 0.08)
+        end
+
+        addLine(cm("compile ok // 0 erros"))
+        addLine(kw("return").." "..TITULO:gsub("[^%w]", ""):lower())
+        task.wait(0.4)
+        streaming = false
+
+        -- transição: clarão laranja
+        local veil = new("Frame", {Size=UDim2.fromScale(1,1), BackgroundColor3=GLOW,
+            BackgroundTransparency=1, BorderSizePixel=0, ZIndex=1100}, gui)
+        tw(veil, 0.22, {BackgroundTransparency=0.35})
+        task.wait(0.24)
+        ov:Destroy()
+        tw(veil, 0.45, {BackgroundTransparency=1})
+    end)
+
+    if rc then rc:Disconnect() end
+    if not ok then
+        warn("[NERO intro] "..tostring(err))
+        gui:Destroy()
+    else
+        Debris:AddItem(gui, 0.8)
+    end
+end
+
+if AGUARDAR then run() else task.spawn(run) end
+end
+--==================== FIM DA ABERTURA ====================
+--
+
+task.wait(7)
 -- ==========================================================
 -- NERO FE v20.0 [PREMIUM OMNI EDITION]
 -- Logica Avançada, Adaptador de Jogos Dinâmico e Interface Premium
