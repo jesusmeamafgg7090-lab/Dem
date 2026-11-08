@@ -311,8 +311,6 @@ if AGUARDAR then run() else task.spawn(run) end
 end
 --==================== FIM DA ABERTURA ====================
 --
-
-task.wait(7)
 -- ==========================================================
 -- NERO FE v20.0 [PREMIUM OMNI EDITION]
 -- Logica Avançada, Adaptador de Jogos Dinâmico e Interface Premium
